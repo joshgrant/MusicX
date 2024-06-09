@@ -3,22 +3,23 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		03DC63B65B3C8EFB39DE50BB /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 378596B163061E08903411C9 /* ComposableArchitecture */; };
 		078A1BF572F06CEE2FA7B5CE /* TuistAssets+MusicBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FEC09BE4815A5ACBA89EB6 /* TuistAssets+MusicBox.swift */; };
+		17A0FA874C90479B93D996E6 /* AppFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E84C6602C0400D19341A14F /* AppFeature.swift */; };
+		20752520F1D99A7F11D78FE4 /* SavedFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 236FE16E3A461582829BBC63 /* SavedFeature.swift */; };
+		330280F5A294915BED4F7BC8 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = A366986A1EC369C9946FD387 /* SettingsFeature.swift */; };
+		39AB84082820D819403D56A5 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB8489A9879B8621532889A /* App.swift */; };
 		45C29BFE99D04443FC8AF5DE /* TuistBundle+MusicBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA53AD985E06B0F467A0556 /* TuistBundle+MusicBox.swift */; };
+		4A96142091B8E69298A6E31D /* SettingsFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D39B7E7412401EC3175069 /* SettingsFeatureTests.swift */; };
 		6086D49F1F14663D564485B7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8122FAC17E4F7283E65D31E0 /* ContentView.swift */; };
 		8311587059CA319F572914C4 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C66DC20B324D0469D168E97 /* Item.swift */; };
-		8C4997972C1632CA00E51D5B /* ListenFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997962C1632CA00E51D5B /* ListenFeature.swift */; };
-		8C4997992C1632D300E51D5B /* HistoryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997982C1632D300E51D5B /* HistoryFeature.swift */; };
-		8C49979B2C1632DA00E51D5B /* SavedFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C49979A2C1632DA00E51D5B /* SavedFeature.swift */; };
-		8C49979D2C1632DF00E51D5B /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C49979C2C1632DF00E51D5B /* SettingsFeature.swift */; };
-		8C49979F2C1633B300E51D5B /* AppFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C49979E2C1633B300E51D5B /* AppFeature.swift */; };
-		8C4997A12C163FE300E51D5B /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997A02C163FE300E51D5B /* App.swift */; };
-		8C4997A32C16437700E51D5B /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997A22C16437700E51D5B /* AppFeatureTests.swift */; };
+		A20FDAB7C236CEC7F86E2334 /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF0E447964539A702B813AC /* AppFeatureTests.swift */; };
+		CB91615376D8299A01BBE74A /* HistoryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD7C308DE9B03E07A468D73 /* HistoryFeature.swift */; };
+		F97E3AE1E8FB4973606F348A /* ListenFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = B902F7C79F235B06C5686780 /* ListenFeature.swift */; };
 		FAFCE67D5F86DBE5F08EF9D4 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E568E480E2874E1E1D2E0CC /* Media.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -59,18 +60,19 @@
 		0AA53AD985E06B0F467A0556 /* TuistBundle+MusicBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+MusicBox.swift"; sourceTree = "<group>"; };
 		0C66DC20B324D0469D168E97 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		1F8F70A83B08E7C3F23F3456 /* MusicBoxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MusicBoxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		236FE16E3A461582829BBC63 /* SavedFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFeature.swift; sourceTree = "<group>"; };
 		28BE8680D26E251B48E11E51 /* MusicBox.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MusicBox.xcconfig; sourceTree = "<group>"; };
 		2B27561AD46B6E6A0B369C90 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		3E84C6602C0400D19341A14F /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
+		3FB8489A9879B8621532889A /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		4DD7C308DE9B03E07A468D73 /* HistoryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryFeature.swift; sourceTree = "<group>"; };
 		4E568E480E2874E1E1D2E0CC /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
+		57D39B7E7412401EC3175069 /* SettingsFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeatureTests.swift; sourceTree = "<group>"; };
 		8122FAC17E4F7283E65D31E0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		8C4997962C1632CA00E51D5B /* ListenFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenFeature.swift; sourceTree = "<group>"; };
-		8C4997982C1632D300E51D5B /* HistoryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryFeature.swift; sourceTree = "<group>"; };
-		8C49979A2C1632DA00E51D5B /* SavedFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFeature.swift; sourceTree = "<group>"; };
-		8C49979C2C1632DF00E51D5B /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
-		8C49979E2C1633B300E51D5B /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
-		8C4997A02C163FE300E51D5B /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
-		8C4997A22C16437700E51D5B /* AppFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeatureTests.swift; sourceTree = "<group>"; };
+		A366986A1EC369C9946FD387 /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
 		A7191AFC111411EC9D61B462 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B902F7C79F235B06C5686780 /* ListenFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenFeature.swift; sourceTree = "<group>"; };
+		BDF0E447964539A702B813AC /* AppFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeatureTests.swift; sourceTree = "<group>"; };
 		E1FEC09BE4815A5ACBA89EB6 /* TuistAssets+MusicBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+MusicBox.swift"; sourceTree = "<group>"; };
 		ED8BAFA9A32FC674B8C97A3D /* MusicBoxTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "MusicBoxTests-Info.plist"; sourceTree = "<group>"; };
 		FD6C630A0AE6E8306D60446C /* MusicBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MusicBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,7 +132,8 @@
 		599B7182D34476CEA61B4687 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				8C4997A22C16437700E51D5B /* AppFeatureTests.swift */,
+				BDF0E447964539A702B813AC /* AppFeatureTests.swift */,
+				57D39B7E7412401EC3175069 /* SettingsFeatureTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -179,14 +182,14 @@
 		F2C302E27AEB41433FA77392 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3FB8489A9879B8621532889A /* App.swift */,
+				3E84C6602C0400D19341A14F /* AppFeature.swift */,
 				8122FAC17E4F7283E65D31E0 /* ContentView.swift */,
+				4DD7C308DE9B03E07A468D73 /* HistoryFeature.swift */,
 				0C66DC20B324D0469D168E97 /* Item.swift */,
-				8C4997962C1632CA00E51D5B /* ListenFeature.swift */,
-				8C4997982C1632D300E51D5B /* HistoryFeature.swift */,
-				8C49979A2C1632DA00E51D5B /* SavedFeature.swift */,
-				8C49979C2C1632DF00E51D5B /* SettingsFeature.swift */,
-				8C49979E2C1633B300E51D5B /* AppFeature.swift */,
-				8C4997A02C163FE300E51D5B /* App.swift */,
+				B902F7C79F235B06C5686780 /* ListenFeature.swift */,
+				236FE16E3A461582829BBC63 /* SavedFeature.swift */,
+				A366986A1EC369C9946FD387 /* SettingsFeature.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -295,14 +298,14 @@
 			files = (
 				078A1BF572F06CEE2FA7B5CE /* TuistAssets+MusicBox.swift in Sources */,
 				45C29BFE99D04443FC8AF5DE /* TuistBundle+MusicBox.swift in Sources */,
-				8C4997A12C163FE300E51D5B /* App.swift in Sources */,
-				8C4997972C1632CA00E51D5B /* ListenFeature.swift in Sources */,
+				39AB84082820D819403D56A5 /* App.swift in Sources */,
+				17A0FA874C90479B93D996E6 /* AppFeature.swift in Sources */,
 				6086D49F1F14663D564485B7 /* ContentView.swift in Sources */,
-				8C4997992C1632D300E51D5B /* HistoryFeature.swift in Sources */,
+				CB91615376D8299A01BBE74A /* HistoryFeature.swift in Sources */,
 				8311587059CA319F572914C4 /* Item.swift in Sources */,
-				8C49979B2C1632DA00E51D5B /* SavedFeature.swift in Sources */,
-				8C49979F2C1633B300E51D5B /* AppFeature.swift in Sources */,
-				8C49979D2C1632DF00E51D5B /* SettingsFeature.swift in Sources */,
+				F97E3AE1E8FB4973606F348A /* ListenFeature.swift in Sources */,
+				20752520F1D99A7F11D78FE4 /* SavedFeature.swift in Sources */,
+				330280F5A294915BED4F7BC8 /* SettingsFeature.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,7 +313,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8C4997A32C16437700E51D5B /* AppFeatureTests.swift in Sources */,
+				A20FDAB7C236CEC7F86E2334 /* AppFeatureTests.swift in Sources */,
+				4A96142091B8E69298A6E31D /* SettingsFeatureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -330,19 +334,28 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "-";
 				INFOPLIST_FILE = "Derived/InfoPlists/MusicBoxTests-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.bcelabs.MusicBoxTests;
 				PRODUCT_NAME = MusicBoxTests;
-				SDKROOT = macosx;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MusicBox.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MusicBox";
 				TEST_TARGET_NAME = MusicBox;
 			};
@@ -493,20 +506,29 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "-";
 				INFOPLIST_FILE = "Derived/InfoPlists/MusicBoxTests-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.bcelabs.MusicBoxTests;
 				PRODUCT_NAME = MusicBoxTests;
-				SDKROOT = macosx;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MusicBox.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MusicBox";
 				TEST_TARGET_NAME = MusicBox;
 			};

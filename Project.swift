@@ -23,7 +23,7 @@ let project = Project(
             ])),
         .init(
             name: "MusicBoxTests",
-            destinations: [.mac],
+            destinations: [.mac, .iPad, .iPhone],
             product: .unitTests,
             bundleId: "com.bcelabs.MusicBoxTests",
             infoPlist: .default,
