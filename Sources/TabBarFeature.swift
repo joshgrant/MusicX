@@ -10,20 +10,25 @@ struct TabBarFeature {
     
     @ObservableState
     struct State: Equatable {
-        
+        var selectedTab: Tab = .listen
     }
     
     enum Action {
-        
     }
     
     var body: some ReducerOf<Self> {
-        Reducer { state, action in
-            switch action {
-                
-            }
+        Reduce { state, action in
+            return .none
         }
     }
+}
+
+@Reducer
+enum Tab {
+    case listen
+    case history
+    case saved
+    case settings
 }
 
 import SwiftUI
@@ -32,8 +37,19 @@ struct TabBarView: View {
     
     @Bindable var store: StoreOf<TabBarFeature>
     
+    @State var selectedTab: Tab = .listen
+    
     var body: some View {
-        
+        TabView(selection: $selectedTab) {
+            Text("Listen").tabItem { Text("Tab Label 1") }
+                .tag(Tab.listen)
+            Text("History").tabItem { Text("Tab Label 2") }
+                .tag(Tab.history)
+            Text("Saved").tabItem { Text("Tab Label 3") }
+                .tag(Tab.saved)
+            Text("Settings").tabItem { Text("Tab Label 4") }
+                .tag(Tab.settings)
+        }
     }
 }
 

@@ -55,6 +55,7 @@
 		0AA53AD985E06B0F467A0556 /* TuistBundle+MusicBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+MusicBox.swift"; sourceTree = "<group>"; };
 		0C66DC20B324D0469D168E97 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		1F8F70A83B08E7C3F23F3456 /* MusicBoxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MusicBoxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		28BE8680D26E251B48E11E51 /* MusicBox.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MusicBox.xcconfig; sourceTree = "<group>"; };
 		2B27561AD46B6E6A0B369C90 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		32C0949533024C81713E0F0C /* TabBarFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarFeature.swift; sourceTree = "<group>"; };
 		3FB8489A9879B8621532889A /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
@@ -103,6 +104,7 @@
 				F2C302E27AEB41433FA77392 /* Sources */,
 				599B7182D34476CEA61B4687 /* Tests */,
 				A7191AFC111411EC9D61B462 /* Info.plist */,
+				28BE8680D26E251B48E11E51 /* MusicBox.xcconfig */,
 				2B27561AD46B6E6A0B369C90 /* Project.swift */,
 			);
 			name = Project;
@@ -330,6 +332,35 @@
 			};
 			name = Release;
 		};
+		11750CD6763096E658CD7148 /* MusicBox.xcconfig */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bcelabs.MusicBox;
+				PRODUCT_NAME = MusicBox;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = MusicBox.xcconfig;
+		};
 		26CFACB353276B1E906EE998 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -538,6 +569,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CD1618DC6D3F77828CABE9B2 /* Debug */,
+				11750CD6763096E658CD7148 /* MusicBox.xcconfig */,
 				FA9996CBD40DE4AB0FE4819B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;

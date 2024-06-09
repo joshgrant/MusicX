@@ -17,7 +17,10 @@ let project = Project(
             resources: ["Resources/**"],
             dependencies: [
                 .package(product: "ComposableArchitecture")
-            ]),
+            ],
+            settings: .settings(configurations: [
+                .debug(name: "MusicBox.xcconfig")
+            ])),
         .init(
             name: "MusicBoxTests",
             destinations: [.mac],
@@ -33,5 +36,6 @@ let project = Project(
     //
     """),
     additionalFiles: [
-        "Project.swift"
+        "Project.swift",
+        "MusicBox.xcconfig"
     ])
