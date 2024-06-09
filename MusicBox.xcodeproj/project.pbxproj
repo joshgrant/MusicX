@@ -3,18 +3,22 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		03DC63B65B3C8EFB39DE50BB /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 378596B163061E08903411C9 /* ComposableArchitecture */; };
 		078A1BF572F06CEE2FA7B5CE /* TuistAssets+MusicBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FEC09BE4815A5ACBA89EB6 /* TuistAssets+MusicBox.swift */; };
-		39AB84082820D819403D56A5 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB8489A9879B8621532889A /* App.swift */; };
 		45C29BFE99D04443FC8AF5DE /* TuistBundle+MusicBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA53AD985E06B0F467A0556 /* TuistBundle+MusicBox.swift */; };
 		6086D49F1F14663D564485B7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8122FAC17E4F7283E65D31E0 /* ContentView.swift */; };
 		8311587059CA319F572914C4 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C66DC20B324D0469D168E97 /* Item.swift */; };
-		A184F521D2381813156873DF /* TabBarFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C0949533024C81713E0F0C /* TabBarFeature.swift */; };
-		C1F726063098E4AE151D82A5 /* MusicBoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B07BBAE160461EB593FD9D /* MusicBoxTests.swift */; };
+		8C4997972C1632CA00E51D5B /* ListenFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997962C1632CA00E51D5B /* ListenFeature.swift */; };
+		8C4997992C1632D300E51D5B /* HistoryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997982C1632D300E51D5B /* HistoryFeature.swift */; };
+		8C49979B2C1632DA00E51D5B /* SavedFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C49979A2C1632DA00E51D5B /* SavedFeature.swift */; };
+		8C49979D2C1632DF00E51D5B /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C49979C2C1632DF00E51D5B /* SettingsFeature.swift */; };
+		8C49979F2C1633B300E51D5B /* AppFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C49979E2C1633B300E51D5B /* AppFeature.swift */; };
+		8C4997A12C163FE300E51D5B /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997A02C163FE300E51D5B /* App.swift */; };
+		8C4997A32C16437700E51D5B /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4997A22C16437700E51D5B /* AppFeatureTests.swift */; };
 		FAFCE67D5F86DBE5F08EF9D4 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E568E480E2874E1E1D2E0CC /* Media.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -57,11 +61,15 @@
 		1F8F70A83B08E7C3F23F3456 /* MusicBoxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MusicBoxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		28BE8680D26E251B48E11E51 /* MusicBox.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MusicBox.xcconfig; sourceTree = "<group>"; };
 		2B27561AD46B6E6A0B369C90 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
-		32C0949533024C81713E0F0C /* TabBarFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarFeature.swift; sourceTree = "<group>"; };
-		3FB8489A9879B8621532889A /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
-		48B07BBAE160461EB593FD9D /* MusicBoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicBoxTests.swift; sourceTree = "<group>"; };
 		4E568E480E2874E1E1D2E0CC /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		8122FAC17E4F7283E65D31E0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8C4997962C1632CA00E51D5B /* ListenFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenFeature.swift; sourceTree = "<group>"; };
+		8C4997982C1632D300E51D5B /* HistoryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryFeature.swift; sourceTree = "<group>"; };
+		8C49979A2C1632DA00E51D5B /* SavedFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFeature.swift; sourceTree = "<group>"; };
+		8C49979C2C1632DF00E51D5B /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
+		8C49979E2C1633B300E51D5B /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
+		8C4997A02C163FE300E51D5B /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		8C4997A22C16437700E51D5B /* AppFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeatureTests.swift; sourceTree = "<group>"; };
 		A7191AFC111411EC9D61B462 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E1FEC09BE4815A5ACBA89EB6 /* TuistAssets+MusicBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+MusicBox.swift"; sourceTree = "<group>"; };
 		ED8BAFA9A32FC674B8C97A3D /* MusicBoxTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "MusicBoxTests-Info.plist"; sourceTree = "<group>"; };
@@ -122,7 +130,7 @@
 		599B7182D34476CEA61B4687 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				48B07BBAE160461EB593FD9D /* MusicBoxTests.swift */,
+				8C4997A22C16437700E51D5B /* AppFeatureTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -171,10 +179,14 @@
 		F2C302E27AEB41433FA77392 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				3FB8489A9879B8621532889A /* App.swift */,
 				8122FAC17E4F7283E65D31E0 /* ContentView.swift */,
 				0C66DC20B324D0469D168E97 /* Item.swift */,
-				32C0949533024C81713E0F0C /* TabBarFeature.swift */,
+				8C4997962C1632CA00E51D5B /* ListenFeature.swift */,
+				8C4997982C1632D300E51D5B /* HistoryFeature.swift */,
+				8C49979A2C1632DA00E51D5B /* SavedFeature.swift */,
+				8C49979C2C1632DF00E51D5B /* SettingsFeature.swift */,
+				8C49979E2C1633B300E51D5B /* AppFeature.swift */,
+				8C4997A02C163FE300E51D5B /* App.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -283,10 +295,14 @@
 			files = (
 				078A1BF572F06CEE2FA7B5CE /* TuistAssets+MusicBox.swift in Sources */,
 				45C29BFE99D04443FC8AF5DE /* TuistBundle+MusicBox.swift in Sources */,
-				39AB84082820D819403D56A5 /* App.swift in Sources */,
+				8C4997A12C163FE300E51D5B /* App.swift in Sources */,
+				8C4997972C1632CA00E51D5B /* ListenFeature.swift in Sources */,
 				6086D49F1F14663D564485B7 /* ContentView.swift in Sources */,
+				8C4997992C1632D300E51D5B /* HistoryFeature.swift in Sources */,
 				8311587059CA319F572914C4 /* Item.swift in Sources */,
-				A184F521D2381813156873DF /* TabBarFeature.swift in Sources */,
+				8C49979B2C1632DA00E51D5B /* SavedFeature.swift in Sources */,
+				8C49979F2C1633B300E51D5B /* AppFeature.swift in Sources */,
+				8C49979D2C1632DF00E51D5B /* SettingsFeature.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,7 +310,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C1F726063098E4AE151D82A5 /* MusicBoxTests.swift in Sources */,
+				8C4997A32C16437700E51D5B /* AppFeatureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

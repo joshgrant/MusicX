@@ -1,26 +1,20 @@
+// © BCE Labs, 2024. All rights reserved.
+//
+
+import Foundation
 import SwiftUI
-import SwiftData
+import ComposableArchitecture
 
 @main
-struct MusicBoxApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+struct MyApp: App {
+    
+    static var store = StoreOf<AppFeature>(initialState: AppFeature.State()) {
+        AppFeature()
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppView(store: MyApp.store)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
-
