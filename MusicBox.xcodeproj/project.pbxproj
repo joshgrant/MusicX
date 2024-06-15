@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,9 +16,12 @@
 		45C29BFE99D04443FC8AF5DE /* TuistBundle+MusicBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA53AD985E06B0F467A0556 /* TuistBundle+MusicBox.swift */; };
 		4A96142091B8E69298A6E31D /* SettingsFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D39B7E7412401EC3175069 /* SettingsFeatureTests.swift */; };
 		6086D49F1F14663D564485B7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8122FAC17E4F7283E65D31E0 /* ContentView.swift */; };
+		805ED74BB7D425A234324448 /* song-titles_3.penis in Resources */ = {isa = PBXBuildFile; fileRef = 3351826B3145DAD788BFA6B8 /* song-titles_3.penis */; };
 		8311587059CA319F572914C4 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C66DC20B324D0469D168E97 /* Item.swift */; };
+		847E8B7A80766E8D370479CF /* SmallCharacterModel in Frameworks */ = {isa = PBXBuildFile; productRef = 86F53B75FFB95860E63D7AA6 /* SmallCharacterModel */; };
 		A20FDAB7C236CEC7F86E2334 /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF0E447964539A702B813AC /* AppFeatureTests.swift */; };
 		CB91615376D8299A01BBE74A /* HistoryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD7C308DE9B03E07A468D73 /* HistoryFeature.swift */; };
+		DF88ADA67D2573A4DD2EACF3 /* song-titles.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3C364134BDBF410CFB5A133E /* song-titles.txt */; };
 		F97E3AE1E8FB4973606F348A /* ListenFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = B902F7C79F235B06C5686780 /* ListenFeature.swift */; };
 		FAFCE67D5F86DBE5F08EF9D4 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E568E480E2874E1E1D2E0CC /* Media.xcassets */; };
 /* End PBXBuildFile section */
@@ -63,6 +66,8 @@
 		236FE16E3A461582829BBC63 /* SavedFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFeature.swift; sourceTree = "<group>"; };
 		28BE8680D26E251B48E11E51 /* MusicBox.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MusicBox.xcconfig; sourceTree = "<group>"; };
 		2B27561AD46B6E6A0B369C90 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		3351826B3145DAD788BFA6B8 /* song-titles_3.penis */ = {isa = PBXFileReference; lastKnownFileType = text; path = "song-titles_3.penis"; sourceTree = "<group>"; };
+		3C364134BDBF410CFB5A133E /* song-titles.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "song-titles.txt"; sourceTree = "<group>"; };
 		3E84C6602C0400D19341A14F /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
 		3FB8489A9879B8621532889A /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		4DD7C308DE9B03E07A468D73 /* HistoryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryFeature.swift; sourceTree = "<group>"; };
@@ -84,6 +89,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				03DC63B65B3C8EFB39DE50BB /* ComposableArchitecture in Frameworks */,
+				847E8B7A80766E8D370479CF /* SmallCharacterModel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,6 +164,8 @@
 			isa = PBXGroup;
 			children = (
 				4E568E480E2874E1E1D2E0CC /* Media.xcassets */,
+				3351826B3145DAD788BFA6B8 /* song-titles_3.penis */,
+				3C364134BDBF410CFB5A133E /* song-titles.txt */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -232,6 +240,7 @@
 			name = MusicBox;
 			packageProductDependencies = (
 				378596B163061E08903411C9 /* ComposableArchitecture */,
+				86F53B75FFB95860E63D7AA6 /* SmallCharacterModel */,
 			);
 			productName = MusicBox;
 			productReference = FD6C630A0AE6E8306D60446C /* MusicBox.app */;
@@ -261,6 +270,7 @@
 			);
 			mainGroup = BF3211ACA70B2A5A8A3F6FE4;
 			packageReferences = (
+				D7D422B8FED1A012EE401FAF /* XCRemoteSwiftPackageReference "SmallCharacterModel" */,
 				A59858BDD795CA334F8EF29E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 			);
 			productRefGroup = 8F59C0D0555F7B62A9B2C4EB /* Products */;
@@ -286,6 +296,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				FAFCE67D5F86DBE5F08EF9D4 /* Media.xcassets in Resources */,
+				DF88ADA67D2573A4DD2EACF3 /* song-titles.txt in Resources */,
+				805ED74BB7D425A234324448 /* song-titles_3.penis in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -633,12 +645,24 @@
 				kind = branch;
 			};
 		};
+		D7D422B8FED1A012EE401FAF /* XCRemoteSwiftPackageReference "SmallCharacterModel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/joshgrant/SmallCharacterModel.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		378596B163061E08903411C9 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ComposableArchitecture;
+		};
+		86F53B75FFB95860E63D7AA6 /* SmallCharacterModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SmallCharacterModel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

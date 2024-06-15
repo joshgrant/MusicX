@@ -1,5 +1,5 @@
 {
-  "originHash" : "81d703dd6e7ef361d922e4159d56e99fa7337762368097761b4ba0ff022b4d31",
+  "originHash" : "3a09f04fa00fe192e5386cd80c117ba5cd8a5b85862fdd84e392d3118d78f76a",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "9dc9cbe4bc45c65164fa653a563d8d8db61b09bb",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "smallcharactermodel",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/joshgrant/SmallCharacterModel.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "4a47b6f3b80ea8e84d33aa3357621c25a2fd86c9"
       }
     },
     {

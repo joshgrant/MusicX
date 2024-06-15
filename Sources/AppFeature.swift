@@ -3,6 +3,7 @@
 
 import Foundation
 import ComposableArchitecture
+import SmallCharacterModel
 
 @Reducer
 struct AppFeature {

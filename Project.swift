@@ -4,7 +4,8 @@ let project = Project(
     name: "MusicBox",
     organizationName: "BCE Labs",
     packages: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .branch("main"))
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .branch("main")),
+        .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", .branch("main"))
     ],
     targets: [
         .init(
@@ -16,7 +17,8 @@ let project = Project(
             sources: ["Sources/**"],
             resources: ["Resources/**"],
             dependencies: [
-                .package(product: "ComposableArchitecture")
+                .package(product: "ComposableArchitecture"),
+                .package(product: "SmallCharacterModel")
             ],
             settings: .settings(configurations: [
                 .debug(name: "MusicBox.xcconfig")
