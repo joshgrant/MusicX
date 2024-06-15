@@ -9,15 +9,6 @@ import MusicKit
 @Reducer
 struct ListenFeature {
     
-    struct MediaInformation: Equatable {
-        var albumArt: Image
-        var artistName: String
-        var albumName: String
-        var songName: String
-        var releaseDate: String
-        var appleMusicURL: URL
-    }
-    
     @ObservableState
     struct State: Equatable {
         var buildProgress: Double?
@@ -44,29 +35,31 @@ struct ListenFeature {
     enum Action {
         case onAppear
         
-        case openInAppleMusic
+        case openSongURL
         case saveToFavoritesToggled
         
         case togglePlaying
         case skip
+        case refreshSong
         
         case smallCharacterModel(SmallCharacterModel.Action)
     }
     
     @Dependency(\.openURL) var openURL
+    @Dependency(\.musicService) var musicService
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
                 // TODO: This name should come from somewhere else
-                if let bundleModelURL = Bundle.main.url(forResource: "\(state.modelName)_\(state.modelCohesion)", withExtension: "penis") {
+                if let bundleModelURL = Bundle.main.url(forResource: "\(state.modelName)_\(state.modelCohesion)", withExtension: "media") {
                     return .send(.smallCharacterModel(.modelLoader(.loadModelDirectly(name: state.modelName, cohesion: state.modelCohesion, source: bundleModelURL))))
                 } else {
                     return .send(.smallCharacterModel(.modelLoader(.loadFromApplicationSupportOrGenerate(name: state.modelName, cohesion: state.modelCohesion, source: state.bundleSource))))
                 }
-            case .openInAppleMusic:
-                if let url = state.mediaInformation?.appleMusicURL {
+            case .openSongURL:
+                if let url = state.mediaInformation?.storeURL {
                     return .run { send in
                         await openURL(url)
                     }
@@ -80,6 +73,8 @@ struct ListenFeature {
                 state.isPlaying.toggle()
                 return .none
             case .skip:
+                return .none
+            case .refreshSong:
                 return .none
                 
             // Small character model
@@ -123,19 +118,35 @@ struct ListenView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     if let mediaInformation = store.mediaInformation {
-                        mediaInformation.albumArt
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .aspectRatio(1, contentMode: .fit)
                         
-                        Text(mediaInformation.artistName)
-                        Text(mediaInformation.albumName)
-                        Text(mediaInformation.songName)
-                        Text(mediaInformation.releaseDate)
+                        // Album artwork
+                        
+                        AsyncImage(url: mediaInformation.albumArtURL) { image in
+                            image
+                                .resizable()
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .aspectRatio(1, contentMode: .fit)
+                        } placeholder: {
+                            albumArtPlaceholderView
+                        }
+                        
+                        // Song information
+                        
+                        VStack(spacing: 4) {
+                            Text(mediaInformation.artistName)
+                            
+                            if let albumName = mediaInformation.albumName {
+                                Text(albumName)
+                            }
+                            
+                            Text(mediaInformation.songName)
+                            
+                            if let releaseDate = mediaInformation.releaseDate {
+                                Text(releaseDate.formatted(date: .numeric, time: .omitted))
+                            }
+                        }
                     } else {
-                        Rectangle()
-                            .fill(Color.accentColor)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .aspectRatio(1, contentMode: .fit)
+                        albumArtPlaceholderView
                     }
                     
                     if let progress = store.buildProgress {
@@ -196,22 +207,32 @@ struct ListenView: View {
                             Image(systemName: "bookmark")
                         }
                     }
-                    .disabled(store.state.mediaInformation != nil)
+                    .disabled(store.state.mediaInformation == nil)
                 }
                 
                 ToolbarItem {
                     Button {
-                        store.send(.openInAppleMusic)
+                        store.send(.openSongURL)
                     } label: {
                         Image(systemName: "arrow.up.right.square")
                     }
-                    .disabled(store.state.mediaInformation != nil)
+                    .disabled(store.state.mediaInformation == nil)
                 }
+            }
+            .refreshable {
+                store.send(.refreshSong)
             }
         }
         .onAppear {
             store.send(.onAppear)
         }
+    }
+    
+    private var albumArtPlaceholderView: some View {
+        Rectangle()
+            .fill(Color.accentColor)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .aspectRatio(1, contentMode: .fit)
     }
 }
 
