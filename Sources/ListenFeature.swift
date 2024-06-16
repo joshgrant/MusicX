@@ -41,6 +41,7 @@ struct ListenFeature {
         case togglePlaying
         case skip
         case refreshSong
+        case songFinishedPlaying
         
         case smallCharacterModel(SmallCharacterModel.Action)
     }
@@ -58,6 +59,7 @@ struct ListenFeature {
                 } else {
                     return .send(.smallCharacterModel(.modelLoader(.loadFromApplicationSupportOrGenerate(name: state.modelName, cohesion: state.modelCohesion, source: state.bundleSource))))
                 }
+                
             case .openSongURL:
                 if let url = state.mediaInformation?.storeURL {
                     return .run { send in
@@ -75,6 +77,8 @@ struct ListenFeature {
             case .skip:
                 return .none
             case .refreshSong:
+                return .none
+            case .songFinishedPlaying:
                 return .none
                 
             // Small character model
