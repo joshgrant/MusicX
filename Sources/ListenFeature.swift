@@ -14,7 +14,9 @@ struct ListenFeature {
         var buildProgress: Double?
         
         var isLoading: Bool = true
-        var mediaInformation: MediaInformation?
+        var currentQuery: String? = nil
+        var currentMediaInformation: MediaInformation?
+        var temporaryMediaInformation: MediaInformation?
         var currentPlaybackTime: TimeInterval?
         var isBookmarked: Bool = false
         var isPlaying: Bool = false
@@ -39,11 +41,16 @@ struct ListenFeature {
         case saveToFavoritesToggled
         
         case togglePlaying
-        case skip
         case refreshSong
         case songFinishedPlaying
         
         case smallCharacterModel(SmallCharacterModel.Action)
+        
+        case fetchedMediaInformation([MediaInformation])
+        case foundNextSong(MediaInformation)
+        
+        case authorized(MusicAuthorization.Status)
+        case failedToAuthenticate(Error)
     }
     
     @Dependency(\.openURL) var openURL
@@ -53,15 +60,23 @@ struct ListenFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                // TODO: This name should come from somewhere else
-                if let bundleModelURL = Bundle.main.url(forResource: "\(state.modelName)_\(state.modelCohesion)", withExtension: "media") {
-                    return .send(.smallCharacterModel(.modelLoader(.loadModelDirectly(name: state.modelName, cohesion: state.modelCohesion, source: bundleModelURL))))
-                } else {
-                    return .send(.smallCharacterModel(.modelLoader(.loadFromApplicationSupportOrGenerate(name: state.modelName, cohesion: state.modelCohesion, source: state.bundleSource))))
+                return .merge([
+                    loadEffect(state: &state),
+                    .run { send in
+                        let result = await MusicAuthorization.request()
+                        await send(.authorized(result))
+                    }
+                ])
+            case .authorized(let status):
+                switch status {
+                case .authorized:
+                    // TODO: There might be a race condition if the model hasn't built yet
+                    return .send(.refreshSong)
+                default:
+                    fatalError()
                 }
-                
             case .openSongURL:
-                if let url = state.mediaInformation?.storeURL {
+                if let url = state.currentMediaInformation?.storeURL {
                     return .run { send in
                         await openURL(url)
                     }
@@ -74,14 +89,13 @@ struct ListenFeature {
             case .togglePlaying:
                 state.isPlaying.toggle()
                 return .none
-            case .skip:
-                return .none
             case .refreshSong:
-                return .none
+                state.isLoading = true
+                // Start with 2 just to reduce API calls
+                return .send(.smallCharacterModel(.wordGenerator(.generate(prefix: "", length: 5))))
             case .songFinishedPlaying:
                 return .none
-                
-            // Small character model
+                // Small character model
             case .smallCharacterModel(.modelLoader(.delegate(.modelLoadingFailed(let error)))):
                 print(error)
                 guard state.buildProgress == nil else {
@@ -99,14 +113,56 @@ struct ListenFeature {
                 state.buildProgress = nil
                 return .none
             case .smallCharacterModel(.wordGenerator(.delegate(.newWord(let word)))):
-                return .none
+                state.currentQuery = word
+                print("SET WORD: \(word)")
+                return .run { send in
+                    do {
+                        let mediaInformation = try await musicService.search(word)
+                        await send(.fetchedMediaInformation(mediaInformation))
+                    } catch {
+                        await send(.failedToAuthenticate(error))
+                    }
+                }
             case .smallCharacterModel:
                 return .none
+            case .fetchedMediaInformation(let mediaInformation):
+                // TODO: If media information is longer than 1 element, store a random element, generate a new letter, and fetch more
+                // TODO: If media information is 0 elements long, return the last random element...
+                
+                if let element = mediaInformation.randomElement() {
+                    state.temporaryMediaInformation = element
+                    print("FETCHED: \(element)")
+                    return .send(.smallCharacterModel(.wordGenerator(.generate(
+                        prefix: state.currentQuery ?? "",
+                        length: (state.currentQuery?.count ?? 0) + 1))))
+                } else {
+                    guard let foundSong = state.temporaryMediaInformation else {
+                        fatalError("There was no temporary media information")
+                    }
+                    state.isLoading = false
+                    return .send(.foundNextSong(foundSong))
+                }
+            case .foundNextSong(let song):
+                print("Found song: \(song)!")
+                state.currentMediaInformation = song
+                return .none
+            case .failedToAuthenticate(let error):
+                return .run { send in
+                    await MusicAuthorization.request()
+                }
             }
         }
         
         Scope(state: \.smallCharacterModel, action: \.smallCharacterModel) {
             SmallCharacterModel()
+        }
+    }
+    
+    func loadEffect(state: inout State) -> Effect<ListenFeature.Action> {
+        if let bundleModelURL = Bundle.main.url(forResource: "\(state.modelName)_\(state.modelCohesion)", withExtension: "media") {
+            return .send(.smallCharacterModel(.modelLoader(.loadModelDirectly(name: state.modelName, cohesion: state.modelCohesion, source: bundleModelURL))))
+        } else {
+            return .send(.smallCharacterModel(.modelLoader(.loadFromApplicationSupportOrGenerate(name: state.modelName, cohesion: state.modelCohesion, source: state.bundleSource))))
         }
     }
 }
@@ -121,7 +177,7 @@ struct ListenView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    if let mediaInformation = store.mediaInformation {
+                    if let mediaInformation = store.currentMediaInformation {
                         
                         // Album artwork
                         
@@ -134,8 +190,16 @@ struct ListenView: View {
                             albumArtPlaceholderView
                         }
                         
-                        // Song information
-                        
+                    } else {
+                        albumArtPlaceholderView
+                    }
+                    
+                    if let progress = store.buildProgress {
+                        ProgressView("Loading Model", value: progress)
+                    } else if store.isLoading {
+                        ProgressView()
+                            .controlSize(.large)
+                    } else if let mediaInformation = store.currentMediaInformation {
                         VStack(spacing: 4) {
                             Text(mediaInformation.artistName)
                             
@@ -149,15 +213,6 @@ struct ListenView: View {
                                 Text(releaseDate.formatted(date: .numeric, time: .omitted))
                             }
                         }
-                    } else {
-                        albumArtPlaceholderView
-                    }
-                    
-                    if let progress = store.buildProgress {
-                        ProgressView("Loading Model", value: progress)
-                    } else if store.isLoading {
-                        ProgressView()
-                            .controlSize(.large)
                     }
                     
                     Group {
@@ -183,15 +238,12 @@ struct ListenView: View {
                             }
                             
                             Button {
-                                store.send(.skip)
+                                store.send(.refreshSong)
                             } label: {
                                 Image(systemName: "forward.fill")
                                     .font(.largeTitle)
                             }
                         }
-                        
-                        ProgressView()
-                            .progressViewStyle(.linear)
                     }
                     .disabled(store.isLoading)
                     
@@ -211,7 +263,7 @@ struct ListenView: View {
                             Image(systemName: "bookmark")
                         }
                     }
-                    .disabled(store.state.mediaInformation == nil)
+                    .disabled(store.state.currentMediaInformation == nil)
                 }
                 
                 ToolbarItem {
@@ -220,7 +272,7 @@ struct ListenView: View {
                     } label: {
                         Image(systemName: "arrow.up.right.square")
                     }
-                    .disabled(store.state.mediaInformation == nil)
+                    .disabled(store.state.currentMediaInformation == nil)
                 }
             }
             .refreshable {
@@ -229,6 +281,7 @@ struct ListenView: View {
         }
         .onAppear {
             store.send(.onAppear)
+            store.send(.refreshSong)
         }
     }
     

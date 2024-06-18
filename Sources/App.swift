@@ -10,6 +10,7 @@ struct MyApp: App {
     
     static var store = StoreOf<AppFeature>(initialState: AppFeature.State()) {
         AppFeature()
+//            ._printChanges()
     }
     
     var body: some Scene {

@@ -1,18 +1,18 @@
 import ProjectDescription
 
 let project = Project(
-    name: "MusicBox",
+    name: "MusicX",
     organizationName: "BCE Labs",
     packages: [
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .branch("main")),
         .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", .branch("main"))
     ],
     targets: [
-        .init(
-            name: "MusicBox",
+        .target(
+            name: "MusicX",
             destinations: [.iPad, .iPhone, .mac],
             product: .app,
-            bundleId: "com.bcelabs.MusicBox",
+            bundleId: "com.bcelabs.MusicX",
             infoPlist: .file(path: "Info.plist"),
             sources: ["Sources/**"],
             resources: ["Resources/**"],
@@ -21,16 +21,18 @@ let project = Project(
                 .package(product: "SmallCharacterModel")
             ],
             settings: .settings(configurations: [
-                .debug(name: "MusicBox.xcconfig")
+                .debug(name: "MusicX.xcconfig")
             ])),
-        .init(
-            name: "MusicBoxTests",
+        .target(
+            name: "MusicXTests",
             destinations: [.mac, .iPad, .iPhone],
             product: .unitTests,
-            bundleId: "com.bcelabs.MusicBoxTests",
+            bundleId: "com.bcelabs.MusicXTests",
             infoPlist: .default,
             sources: ["Tests/**"],
-            dependencies: [.target(name: "MusicBox")])
+            dependencies: [
+                .target(name: "MusicX")
+            ])
     ],
     fileHeaderTemplate: .string(
     """
@@ -39,5 +41,5 @@ let project = Project(
     """),
     additionalFiles: [
         "Project.swift",
-        "MusicBox.xcconfig"
+        "MusicX.xcconfig"
     ])

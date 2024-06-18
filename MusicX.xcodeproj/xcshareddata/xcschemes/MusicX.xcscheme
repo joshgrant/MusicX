@@ -14,24 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "73DC888A3FFA0E7E61D55947"
-               BuildableName = "MusicBox.app"
-               BlueprintName = "MusicBox"
-               ReferencedContainer = "container:MusicBox.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4C17B132DC0A13EFB9D6972C"
-               BuildableName = "MusicBoxTests.xctest"
-               BlueprintName = "MusicBoxTests"
-               ReferencedContainer = "container:MusicBox.xcodeproj">
+               BlueprintIdentifier = "9D5F38FA28B8C32BAF093216"
+               BuildableName = "MusicX.app"
+               BlueprintName = "MusicX"
+               ReferencedContainer = "container:MusicX.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,10 +32,10 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4C17B132DC0A13EFB9D6972C"
-               BuildableName = "MusicBoxTests.xctest"
-               BlueprintName = "MusicBoxTests"
-               ReferencedContainer = "container:MusicBox.xcodeproj">
+               BlueprintIdentifier = "D23CDDF93893E68136B34AA6"
+               BuildableName = "MusicXTests.xctest"
+               BlueprintName = "MusicXTests"
+               ReferencedContainer = "container:MusicX.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -68,10 +54,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "73DC888A3FFA0E7E61D55947"
-            BuildableName = "MusicBox.app"
-            BlueprintName = "MusicBox"
-            ReferencedContainer = "container:MusicBox.xcodeproj">
+            BlueprintIdentifier = "9D5F38FA28B8C32BAF093216"
+            BuildableName = "MusicX.app"
+            BlueprintName = "MusicX"
+            ReferencedContainer = "container:MusicX.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -85,10 +71,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "73DC888A3FFA0E7E61D55947"
-            BuildableName = "MusicBox.app"
-            BlueprintName = "MusicBox"
-            ReferencedContainer = "container:MusicBox.xcodeproj">
+            BlueprintIdentifier = "9D5F38FA28B8C32BAF093216"
+            BuildableName = "MusicX.app"
+            BlueprintName = "MusicX"
+            ReferencedContainer = "container:MusicX.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

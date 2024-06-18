@@ -9,11 +9,11 @@ struct SavedFeature {
     
     @ObservableState
     struct State: Equatable {
-        
+        var savedItems: [MediaInformation] = []
     }
     
     enum Action {
-        
+        case delete(MediaInformation)
     }
     
     var body: some ReducerOf<Self> {
