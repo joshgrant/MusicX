@@ -7,38 +7,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "B64D1569-BC79-4414-87E3-78FC407F9D16"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Sources/ListenFeature.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "146"
-            endingLineNumber = "146"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "2A7FD8F7-F6CE-4FDD-83F0-19F580ADDF8D"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Sources/ListenFeature.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "134"
-            endingLineNumber = "134"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
@@ -46,13 +14,13 @@
             filePath = "Sources/ListenFeature.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "156"
-            endingLineNumber = "156"
+            startingLineNumber = "141"
+            endingLineNumber = "141"
             landmarkName = "body"
             landmarkType = "24">
             <Locations>
                <Location
-                  uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773 - 58b2ab8c87149374"
+                  uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773 - 58b2ab8c87149d05"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -62,22 +30,22 @@
                   urlString = "file:///Users/me/Documents/Xcode/Projects/MusicX/Sources/ListenFeature.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "156"
-                  endingLineNumber = "156">
+                  startingLineNumber = "141"
+                  endingLineNumber = "141">
                </Location>
                <Location
-                  uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773 - 6c5fb3fe92127d01"
+                  uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773 - 61096db9785dd92f"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "closure #4 @Sendable (ComposableArchitecture.Send&lt;MusicX.ListenFeature.Action&gt;) async -&gt; () in closure #1 (inout MusicX.ListenFeature.State, MusicX.ListenFeature.Action) -&gt; ComposableArchitecture.Effect&lt;MusicX.ListenFeature.Action&gt; in MusicX.ListenFeature.body.getter : some"
+                  symbolName = "closure #3 @Sendable (ComposableArchitecture.Send&lt;MusicX.ListenFeature.Action&gt;) async -&gt; () in closure #1 (inout MusicX.ListenFeature.State, MusicX.ListenFeature.Action) -&gt; ComposableArchitecture.Effect&lt;MusicX.ListenFeature.Action&gt; in MusicX.ListenFeature.body.getter : some"
                   moduleName = "MusicX"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/me/Documents/Xcode/Projects/MusicX/Sources/ListenFeature.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "157"
-                  endingLineNumber = "157">
+                  startingLineNumber = "142"
+                  endingLineNumber = "142">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -92,8 +60,24 @@
             filePath = "Sources/ListenFeature.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "238"
-            endingLineNumber = "238"
+            startingLineNumber = "225"
+            endingLineNumber = "225"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F1827858-12E1-4868-AF90-4FF2E6299F66"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Sources/ListenFeature.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "98"
+            endingLineNumber = "98"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>

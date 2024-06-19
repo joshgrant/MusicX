@@ -4,6 +4,7 @@
 import Foundation
 import ComposableArchitecture
 import SmallCharacterModel
+import MusicKit
 
 @Reducer
 struct AppFeature {
@@ -17,18 +18,18 @@ struct AppFeature {
     
     @ObservableState
     struct State: Equatable {
-//        var sharedModelContainer: ModelContainer = {
-//            let schema = Schema([
-//                Item.self,
-//            ])
-//            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-//
-//            do {
-//                return try ModelContainer(for: schema, configurations: [modelConfiguration])
-//            } catch {
-//                fatalError("Could not create ModelContainer: \(error)")
-//            }
-//        }()
+        //        var sharedModelContainer: ModelContainer = {
+        //            let schema = Schema([
+        //                Item.self,
+        //            ])
+        //            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        //
+        //            do {
+        //                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        //            } catch {
+        //                fatalError("Could not create ModelContainer: \(error)")
+        //            }
+        //        }()
         
         var selectedTab: Tab = .listen
         
@@ -39,6 +40,8 @@ struct AppFeature {
     }
     
     enum Action {
+        case onAppear
+        
         case selectedTabChanged(Tab)
         
         case listen(ListenFeature.Action)
@@ -50,6 +53,14 @@ struct AppFeature {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                return .merge([
+                    .send(.listen(.smallCharacterModel(.load))),
+                    .run { send in
+                        let result = await MusicAuthorization.request()
+                        await send(.listen(.authorized(result)))
+                    }
+                ])
             case .selectedTabChanged(let tab):
                 state.selectedTab = tab
                 return .none
@@ -81,7 +92,7 @@ import SwiftUI
 struct AppView: View {
     
     @Bindable var store: StoreOf<AppFeature>
-
+    
     var body: some View {
         TabView(selection: $store.selectedTab.sending(\.selectedTabChanged)) {
             ListenView(store: store.scope(state: \.listen, action: \.listen))
@@ -108,6 +119,9 @@ struct AppView: View {
                     Text("Settings")
                 }
                 .tag(AppFeature.Tab.settings)
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
     }
 }

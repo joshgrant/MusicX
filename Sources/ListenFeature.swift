@@ -11,7 +11,11 @@ struct ListenFeature {
     
     @ObservableState
     struct State: Equatable {
-        var smallCharacterModel = SmallCharacterModel.State()
+        var smallCharacterModel = SmallCharacterModel.State(source: .preTrainedBundleModel(.init(
+            name: "song-titles",
+            cohesion: 3,
+            fileExtension: "media")))
+        
         var mediaPlayer = MediaPlayerFeature.State()
         
         var buildProgress: Double?
@@ -25,21 +29,11 @@ struct ListenFeature {
         var isPlaying: Bool = false
         
         var musicSubscription: MusicSubscription?
-        var authorizationStatus: MusicAuthorization.Status = MusicAuthorization.currentStatus
-        
-        var modelName = "song-titles"
-        var modelCohesion = 3
-        
-        var bundleSource: URL {
-            Bundle.main.url(forResource: "song-titles", withExtension: "txt")!
-        }
     }
     
     enum Action {
         case smallCharacterModel(SmallCharacterModel.Action)
         case mediaPlayer(MediaPlayerFeature.Action)
-        
-        case onAppear
         
         case openSongURL
         case saveToFavoritesToggled
@@ -47,6 +41,8 @@ struct ListenFeature {
         case togglePlaying
         case refreshSong
         case songFinishedPlaying
+        
+        case attemptToLoadFirstSong
         
         case fetchedMediaInformation([MediaInformation])
         case foundNextSong(mediaInformation: MediaInformation)
@@ -61,20 +57,10 @@ struct ListenFeature {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .onAppear:
-                // TODO: We don't want this to reload when we view the screen...
-                return .merge([
-                    loadEffect(state: &state),
-                    .run { send in
-                        let result = await MusicAuthorization.request()
-                        await send(.authorized(result))
-                    }
-                ])
             case .authorized(let status):
                 switch status {
                 case .authorized:
-                    // TODO: There might be a race condition if the model hasn't built yet
-                    return .send(.refreshSong)
+                    return .send(.attemptToLoadFirstSong)
                 default:
                     fatalError()
                 }
@@ -104,17 +90,16 @@ struct ListenFeature {
                 guard state.buildProgress == nil else {
                     return .none
                 }
-                return .send(.smallCharacterModel(.modelLoader(.loadFromApplicationSupportOrGenerate(name: state.modelName, cohesion: state.modelCohesion, source: state.bundleSource))))
+                fatalError(error.localizedDescription)
             case .smallCharacterModel(.modelBuilder(.delegate(.progress(let progress)))):
-                print(progress)
                 state.buildProgress = progress
                 return .none
             case .smallCharacterModel(.modelBuilder(.delegate(.saved))):
                 state.buildProgress = nil
-                return .none
+                return .send(.attemptToLoadFirstSong)
             case .smallCharacterModel(.modelLoader(.delegate(.loaded))):
                 state.buildProgress = nil
-                return .none
+                return .send(.attemptToLoadFirstSong)
             case .smallCharacterModel(.wordGenerator(.delegate(.newWord(let word)))):
                 state.currentQuery = word
                 print("SET WORD: \(word)")
@@ -159,6 +144,16 @@ struct ListenFeature {
                 }
             case .mediaPlayer:
                 return .none
+            case .attemptToLoadFirstSong:
+                if state.buildProgress != nil {
+                    return .none
+                }
+                
+                if musicService.authorizationStatus() != .authorized {
+                    return .none
+                }
+                
+                return .send(.refreshSong)
             }
         }
         
@@ -168,14 +163,6 @@ struct ListenFeature {
         
         Scope(state: \.mediaPlayer, action: \.mediaPlayer) {
             MediaPlayerFeature()
-        }
-    }
-    
-    func loadEffect(state: inout State) -> Effect<ListenFeature.Action> {
-        if let bundleModelURL = Bundle.main.url(forResource: "\(state.modelName)_\(state.modelCohesion)", withExtension: "media") {
-            return .send(.smallCharacterModel(.modelLoader(.loadModelDirectly(name: state.modelName, cohesion: state.modelCohesion, source: bundleModelURL))))
-        } else {
-            return .send(.smallCharacterModel(.modelLoader(.loadFromApplicationSupportOrGenerate(name: state.modelName, cohesion: state.modelCohesion, source: state.bundleSource))))
         }
     }
 }
@@ -292,10 +279,6 @@ struct ListenView: View {
             .refreshable {
                 store.send(.refreshSong)
             }
-        }
-        .onAppear {
-            store.send(.onAppear)
-            store.send(.refreshSong)
         }
     }
     
