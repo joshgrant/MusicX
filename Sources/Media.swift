@@ -28,6 +28,8 @@ final class Media {
     
     var musicId: MusicItemID?
     
+    var bookmarked: Bool = false
+    
     init(
         artistName: String,
         albumName: String? = nil,

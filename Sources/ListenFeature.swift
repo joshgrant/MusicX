@@ -26,7 +26,6 @@ struct ListenFeature {
         var currentMediaInformation: Media?
         var temporaryMediaInformation: Media?
         var currentPlaybackTime: TimeInterval?
-        var isBookmarked: Bool = false
         
         var musicSubscription: MusicSubscription?
     }
@@ -72,7 +71,7 @@ struct ListenFeature {
                     return .none
                 }
             case .saveToFavoritesToggled:
-                state.isBookmarked.toggle()
+                state.currentMediaInformation?.bookmarked.toggle()
                 return .none
             case .refreshSong:
                 state.isLoading = true
@@ -260,7 +259,7 @@ struct ListenView: View {
                     Button {
                         store.send(.saveToFavoritesToggled)
                     } label: {
-                        if store.isBookmarked {
+                        if store.currentMediaInformation?.bookmarked ?? false {
                             Image(systemName: "bookmark.fill")
                         } else {
                             Image(systemName: "bookmark")

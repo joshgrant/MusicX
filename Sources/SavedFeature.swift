@@ -10,11 +10,12 @@ struct SavedFeature {
     
     @ObservableState
     struct State: Equatable {
-        var savedItems: [Media] = []
+        var songSnippets: IdentifiedArrayOf<SongSnippetFeature.State> = .init(uniqueElements: [])
     }
     
     enum Action {
-        case queryChangedMedia([Media])
+        case onAppear
+        case gotFetchResults([Media])
         case delete(Media)
     }
     
@@ -22,7 +23,24 @@ struct SavedFeature {
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
-            return .none
+            switch action {
+            case .onAppear:
+                return .run { send in
+                    let predicate: Predicate<Media> = #Predicate {
+                        $0.bookmarked
+                    }
+                    let descriptor = FetchDescriptor<Media>(predicate: predicate, sortBy: [.init(\.timestamp)])
+                    let results = try database.context().fetch(descriptor)
+                    await send(.gotFetchResults(results))
+                }
+            case .gotFetchResults(let media):
+                state.songSnippets = .init(uniqueElements: media.map {
+                    .init(media: $0)
+                })
+                return .none
+            case .delete(let media):
+                return .none
+            }
         }
     }
 }
@@ -40,7 +58,21 @@ struct SavedView: View {
     }
     
     var body: some View {
-        Text("Saved")
+        NavigationStack {
+            ScrollView {
+                LazyVStack(alignment: .leading) {
+                    ForEach(store.songSnippets) { state in
+                        SongSnippetView(store: .init(initialState: state, reducer: {
+                            SongSnippetFeature()
+                        }))
+                    }
+                }
+            }
+            .navigationTitle("Saved")
+        }
+        .onAppear {
+            store.send(.onAppear)
+        }
     }
 }
 

@@ -16,7 +16,6 @@ struct HistoryFeature {
         case onAppear
         case gotFetchResults([Media])
         case delete(Media)
-        case queryChangedMedia([Media])
     }
     
     @Dependency(\.database) var database
@@ -26,7 +25,7 @@ struct HistoryFeature {
             switch action {
             case .onAppear:
                 return .run { send in
-                    let descriptor = FetchDescriptor<Media>()
+                    let descriptor = FetchDescriptor<Media>(sortBy: [.init(\.timestamp)])
                     let results = try database.context().fetch(descriptor)
                     await send(.gotFetchResults(results))
                 }
@@ -36,11 +35,6 @@ struct HistoryFeature {
                 })
                 return .none
             case .delete(let media):
-                return .none
-            case .queryChangedMedia(let media):
-                state.songSnippets = .init(uniqueElements: (media.map({
-                    .init(media: $0)
-                })))
                 return .none
             }
         }
