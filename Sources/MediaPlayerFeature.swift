@@ -19,7 +19,8 @@ struct MediaPlayerFeature {
     enum Action {
         case onAppear
         case pause
-        case play(MediaInformation)
+        case playSong(Song)
+        case playMedia(MusicItemID)
         case enqueue(Song)
         case skip
     }
@@ -42,11 +43,7 @@ struct MediaPlayerFeature {
                 state.isPlaying = false
                 musicPlayer.pause()
                 return .none
-            case .play(let mediaInformation):
-                guard let song = mediaInformation.song else {
-                    state.isPlaying = false
-                    return .none
-                }
+            case .playSong(let song):
                 state.isPlaying = true
                 return .run { send in
                     do {
@@ -54,6 +51,17 @@ struct MediaPlayerFeature {
                         try await musicPlayer.play()
                     } catch {
                         print(error)
+                    }
+                }
+            case .playMedia(let id):
+                return .run { send in
+                    let request = MusicCatalogResourceRequest<Song>(
+                        matching: \.id,
+                        equalTo: id)
+                    if let song = try await request.response().items.first {
+                        await send(.playSong(song))
+                    } else {
+                        fatalError()
                     }
                 }
             case .enqueue(let song):

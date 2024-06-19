@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,14 +16,15 @@
 		400091AD2F9AB1F65B64DD55 /* TuistBundle+MusicX.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF50B4DF848E1E2AA08E8B93 /* TuistBundle+MusicX.swift */; };
 		478A62B97D2E570C841358C2 /* HistoryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CA000CE52C9629AA7AFE27 /* HistoryFeature.swift */; };
 		4907D541FF614DAFCB84D30C /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B79133DB90153844911B592 /* MusicPlayer.swift */; };
-		5235DF3116C1594CC012972E /* MediaInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DE5B8B542719B2C8E9D3310 /* MediaInformation.swift */; };
 		679F79055C14D38195DE21AD /* SavedFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B496A0146852FE6304105D3 /* SavedFeature.swift */; };
 		87F217C3CB0BDCF50107938B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7A3D584539700C06444252 /* ContentView.swift */; };
+		8C39BFF72C23305C00B3E400 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C39BFF62C23305C00B3E400 /* DatabaseService.swift */; };
+		8C39BFFA2C23411700B3E400 /* SongSnippetFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C39BFF92C23411700B3E400 /* SongSnippetFeature.swift */; };
 		9C40FFDA4F776654653E0288 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4CC8B217D6B3880A89DB68 /* SettingsFeature.swift */; };
 		A24DB46071A3ED84D91317BA /* song-titles.txt in Resources */ = {isa = PBXBuildFile; fileRef = 66C29C37850A5AFE13DB2ACC /* song-titles.txt */; };
-		A439E8EF9C8AD55AD2C37ED6 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2FFE621CD2CE4D6756104E2 /* App.swift */; };
+		A439E8EF9C8AD55AD2C37ED6 /* MyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2FFE621CD2CE4D6756104E2 /* MyApp.swift */; };
 		B8FE9153878902D05330C73F /* AppFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D4822D5B45A64285E9BC42 /* AppFeature.swift */; };
-		BD971B3AFA3E8334AD37B28C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B38A1F64808A5D32202F57DB /* Item.swift */; };
+		BD971B3AFA3E8334AD37B28C /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = B38A1F64808A5D32202F57DB /* Media.swift */; };
 		DD6173E8852B63440FF70691 /* SmallCharacterModel in Frameworks */ = {isa = PBXBuildFile; productRef = 04FA6161580C594C3A016726 /* SmallCharacterModel */; };
 		E5D9DB14E9F5F77C85681D83 /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C53D455DF164F36D1FF2380 /* AppFeatureTests.swift */; };
 		E997B9A040F5A37C641B23AA /* MediaPlayerFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A658058698DF3F8F01D2EF /* MediaPlayerFeature.swift */; };
@@ -79,15 +80,17 @@
 		6C53D455DF164F36D1FF2380 /* AppFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeatureTests.swift; sourceTree = "<group>"; };
 		74CA000CE52C9629AA7AFE27 /* HistoryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryFeature.swift; sourceTree = "<group>"; };
 		785AA146D66F7D5EAD53D136 /* MusicX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MusicX.xcconfig; sourceTree = "<group>"; };
-		7E6F053DF8C5B34B18308F47 /* song-titles_3.media */ = {isa = PBXFileReference; path = "song-titles_3.media"; sourceTree = "<group>"; };
+		7E6F053DF8C5B34B18308F47 /* song-titles_3.media */ = {isa = PBXFileReference; lastKnownFileType = text; path = "song-titles_3.media"; sourceTree = "<group>"; };
+		8C39BFF62C23305C00B3E400 /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
+		8C39BFF82C233B1900B3E400 /* MusicX.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MusicX.entitlements; sourceTree = "<group>"; };
+		8C39BFF92C23411700B3E400 /* SongSnippetFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSnippetFeature.swift; sourceTree = "<group>"; };
 		95A658058698DF3F8F01D2EF /* MediaPlayerFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerFeature.swift; sourceTree = "<group>"; };
 		9613D7B05AE9894256600CE2 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		97FE529E361E724B6188F7BF /* MusicX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MusicX.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9DE5B8B542719B2C8E9D3310 /* MediaInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaInformation.swift; sourceTree = "<group>"; };
 		AF50B4DF848E1E2AA08E8B93 /* TuistBundle+MusicX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+MusicX.swift"; sourceTree = "<group>"; };
-		B38A1F64808A5D32202F57DB /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		B38A1F64808A5D32202F57DB /* Media.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Media.swift; sourceTree = "<group>"; };
 		CE4CC8B217D6B3880A89DB68 /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
-		D2FFE621CD2CE4D6756104E2 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		D2FFE621CD2CE4D6756104E2 /* MyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyApp.swift; sourceTree = "<group>"; };
 		F9D4822D5B45A64285E9BC42 /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -114,18 +117,19 @@
 		097F3FC76BA90F786DB4E645 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				D2FFE621CD2CE4D6756104E2 /* App.swift */,
+				D2FFE621CD2CE4D6756104E2 /* MyApp.swift */,
 				F9D4822D5B45A64285E9BC42 /* AppFeature.swift */,
 				4B7A3D584539700C06444252 /* ContentView.swift */,
 				74CA000CE52C9629AA7AFE27 /* HistoryFeature.swift */,
-				B38A1F64808A5D32202F57DB /* Item.swift */,
+				B38A1F64808A5D32202F57DB /* Media.swift */,
 				117490DB02311AC205E0D093 /* ListenFeature.swift */,
-				9DE5B8B542719B2C8E9D3310 /* MediaInformation.swift */,
 				95A658058698DF3F8F01D2EF /* MediaPlayerFeature.swift */,
 				0B79133DB90153844911B592 /* MusicPlayer.swift */,
 				35BACA9E728DB64A72BB0A58 /* MusicService.swift */,
+				8C39BFF62C23305C00B3E400 /* DatabaseService.swift */,
 				0B496A0146852FE6304105D3 /* SavedFeature.swift */,
 				CE4CC8B217D6B3880A89DB68 /* SettingsFeature.swift */,
+				8C39BFF92C23411700B3E400 /* SongSnippetFeature.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -170,6 +174,7 @@
 		77876156187CC5D2E9FA6BF0 = {
 			isa = PBXGroup;
 			children = (
+				8C39BFF82C233B1900B3E400 /* MusicX.entitlements */,
 				EF14295831814100F64BA5B5 /* Project */,
 				76FD759017F8BD6354D2974C /* Products */,
 			);
@@ -314,13 +319,14 @@
 			files = (
 				1108D47CDE37A779AFC431BB /* TuistAssets+MusicX.swift in Sources */,
 				400091AD2F9AB1F65B64DD55 /* TuistBundle+MusicX.swift in Sources */,
-				A439E8EF9C8AD55AD2C37ED6 /* App.swift in Sources */,
+				A439E8EF9C8AD55AD2C37ED6 /* MyApp.swift in Sources */,
+				8C39BFFA2C23411700B3E400 /* SongSnippetFeature.swift in Sources */,
 				B8FE9153878902D05330C73F /* AppFeature.swift in Sources */,
 				87F217C3CB0BDCF50107938B /* ContentView.swift in Sources */,
 				478A62B97D2E570C841358C2 /* HistoryFeature.swift in Sources */,
-				BD971B3AFA3E8334AD37B28C /* Item.swift in Sources */,
+				8C39BFF72C23305C00B3E400 /* DatabaseService.swift in Sources */,
+				BD971B3AFA3E8334AD37B28C /* Media.swift in Sources */,
 				0ACD37A60F305F9ECE4467DC /* ListenFeature.swift in Sources */,
-				5235DF3116C1594CC012972E /* MediaInformation.swift in Sources */,
 				E997B9A040F5A37C641B23AA /* MediaPlayerFeature.swift in Sources */,
 				4907D541FF614DAFCB84D30C /* MusicPlayer.swift in Sources */,
 				3B820745BC8978E89F65845D /* MusicService.swift in Sources */,
@@ -425,10 +431,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -442,6 +445,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MusicX.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 685257RUQP;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -454,15 +461,13 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.bcelabs.MusicX;
 				PRODUCT_NAME = MusicX;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -533,6 +538,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MusicX.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 685257RUQP;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -545,6 +554,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.bcelabs.MusicX;
 				PRODUCT_NAME = MusicX;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
@@ -561,6 +571,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MusicX.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 685257RUQP;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -573,15 +587,13 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.bcelabs.MusicX;
 				PRODUCT_NAME = MusicX;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;

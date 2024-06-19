@@ -18,19 +18,6 @@ struct AppFeature {
     
     @ObservableState
     struct State: Equatable {
-        //        var sharedModelContainer: ModelContainer = {
-        //            let schema = Schema([
-        //                Item.self,
-        //            ])
-        //            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        //
-        //            do {
-        //                return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        //            } catch {
-        //                fatalError("Could not create ModelContainer: \(error)")
-        //            }
-        //        }()
-        
         var selectedTab: Tab = .listen
         
         var listen = ListenFeature.State()
@@ -49,6 +36,8 @@ struct AppFeature {
         case saved(SavedFeature.Action)
         case settings(SettingsFeature.Action)
     }
+    
+    @Dependency(\.database) var database
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in

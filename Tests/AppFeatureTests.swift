@@ -4,7 +4,7 @@
 import XCTest
 import ComposableArchitecture
 
-@testable import MusicBox
+@testable import MusicX
 
 final class AppFeatureTests: XCTestCase {
 

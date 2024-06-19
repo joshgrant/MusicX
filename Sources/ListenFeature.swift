@@ -5,6 +5,7 @@ import Foundation
 import ComposableArchitecture
 import SmallCharacterModel
 import MusicKit
+import SwiftData
 
 @Reducer
 struct ListenFeature {
@@ -22,8 +23,8 @@ struct ListenFeature {
         
         var isLoading: Bool = true
         var currentQuery: String? = nil
-        var currentMediaInformation: MediaInformation?
-        var temporaryMediaInformation: MediaInformation?
+        var currentMediaInformation: Media?
+        var temporaryMediaInformation: Media?
         var currentPlaybackTime: TimeInterval?
         var isBookmarked: Bool = false
         
@@ -42,8 +43,8 @@ struct ListenFeature {
         
         case attemptToLoadFirstSong
         
-        case fetchedMediaInformation([MediaInformation])
-        case foundNextSong(mediaInformation: MediaInformation)
+        case fetchedMediaInformation([Media])
+        case foundNextSong(mediaInformation: Media)
         
         case authorized(MusicAuthorization.Status)
         case failedToAuthenticate(Error)
@@ -109,12 +110,8 @@ struct ListenFeature {
             case .smallCharacterModel:
                 return .none
             case .fetchedMediaInformation(let mediaInformation):
-                // TODO: If media information is longer than 1 element, store a random element, generate a new letter, and fetch more
-                // TODO: If media information is 0 elements long, return the last random element...
-                
                 if let element = mediaInformation.randomElement() {
                     state.temporaryMediaInformation = element
-                    print("FETCHED: \(element)")
                     return .send(.smallCharacterModel(.wordGenerator(.generate(
                         prefix: state.currentQuery ?? "",
                         length: (state.currentQuery?.count ?? 0) + 1))))
@@ -123,14 +120,16 @@ struct ListenFeature {
                         fatalError("There was no temporary media information")
                     }
                     state.isLoading = false
+                    @Dependency(\.database) var database
+                    database.context().insert(foundSong)
                     return .send(.foundNextSong(mediaInformation: foundSong))
                 }
-            case .foundNextSong(let mediaInformation):
-                state.currentMediaInformation = mediaInformation
-                if let song = mediaInformation.song {
-                    return .send(.mediaPlayer(.enqueue(song)))
+            case .foundNextSong(let media):
+                if let id = media.musicId {
+                    state.currentMediaInformation = media
+                    return .send(.mediaPlayer(.playMedia(id)))
                 } else {
-                    return .none
+                    fatalError()
                 }
             case .failedToAuthenticate(let error):
                 return .run { send in
@@ -188,15 +187,20 @@ struct ListenView: View {
                         } placeholder: {
                             albumArtPlaceholderView
                         }
+                        .frame(maxWidth: 512, maxHeight: 512)
                         
                         VStack(spacing: 4) {
-                            Text(mediaInformation.artistName)
+                            if let artistName = mediaInformation.artistName {
+                                Text(artistName)
+                            }
                             
                             if let albumName = mediaInformation.albumName {
                                 Text(albumName)
                             }
                             
-                            Text(mediaInformation.songName)
+                            if let songName = mediaInformation.songName {
+                                Text(songName)
+                            }
                             
                             if let releaseDate = mediaInformation.releaseDate {
                                 Text(releaseDate.formatted(date: .numeric, time: .omitted))
@@ -217,8 +221,8 @@ struct ListenView: View {
                             
                             // TODO: Fix me?
                             Button {
-                                if !store.mediaPlayer.isPlaying, let song = store.currentMediaInformation {
-                                    store.send(.mediaPlayer(.play(song)))
+                                if !store.mediaPlayer.isPlaying, let media = store.currentMediaInformation, let id = media.musicId {
+                                    store.send(.mediaPlayer(.playMedia(id)))
                                 } else {
                                     store.send(.mediaPlayer(.pause))
                                 }

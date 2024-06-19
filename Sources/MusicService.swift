@@ -15,7 +15,7 @@ struct MusicService {
     }
     
     var authorizationStatus: () -> AuthorizationStatus
-    var search: (_ searchTerm: String) async throws -> [MediaInformation]
+    var search: (_ searchTerm: String) async throws -> [Media]
 }
 
 extension MusicService: DependencyKey {
@@ -50,7 +50,6 @@ extension MusicService: DependencyKey {
         authorizationStatus: { .authorized },
         search: { searchTerm in
             return [
-                .init(artistName: "Test Artist", songName: "Test Song")
             ]
         })
 }
