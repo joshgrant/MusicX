@@ -26,7 +26,6 @@ struct ListenFeature {
         var temporaryMediaInformation: MediaInformation?
         var currentPlaybackTime: TimeInterval?
         var isBookmarked: Bool = false
-        var isPlaying: Bool = false
         
         var musicSubscription: MusicSubscription?
     }
@@ -38,7 +37,6 @@ struct ListenFeature {
         case openSongURL
         case saveToFavoritesToggled
         
-        case togglePlaying
         case refreshSong
         case songFinishedPlaying
         
@@ -74,9 +72,6 @@ struct ListenFeature {
                 }
             case .saveToFavoritesToggled:
                 state.isBookmarked.toggle()
-                return .none
-            case .togglePlaying:
-                state.isPlaying.toggle()
                 return .none
             case .refreshSong:
                 state.isLoading = true
@@ -217,6 +212,7 @@ struct ListenView: View {
                                 Image(systemName: "forward.fill")
                                     .font(.largeTitle)
                             }
+                            .buttonStyle(.plain)
                             .opacity(0)
                             
                             // TODO: Fix me?
@@ -227,7 +223,7 @@ struct ListenView: View {
                                     store.send(.mediaPlayer(.pause))
                                 }
                             } label: {
-                                if store.isPlaying {
+                                if store.mediaPlayer.isPlaying {
                                     Image(systemName: "pause.fill")
                                         .font(.largeTitle)
                                 } else {
@@ -235,6 +231,7 @@ struct ListenView: View {
                                         .font(.largeTitle)
                                 }
                             }
+                            .buttonStyle(.plain)
                             
                             Button {
                                 store.send(.refreshSong)
@@ -242,6 +239,7 @@ struct ListenView: View {
                                 Image(systemName: "forward.fill")
                                     .font(.largeTitle)
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                     .disabled(store.isLoading)

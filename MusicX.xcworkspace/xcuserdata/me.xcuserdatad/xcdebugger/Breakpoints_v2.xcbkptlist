@@ -8,60 +8,14 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Sources/ListenFeature.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "141"
-            endingLineNumber = "141"
-            landmarkName = "body"
-            landmarkType = "24">
-            <Locations>
-               <Location
-                  uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773 - 58b2ab8c87149d05"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (inout MusicX.ListenFeature.State, MusicX.ListenFeature.Action) -&gt; ComposableArchitecture.Effect&lt;MusicX.ListenFeature.Action&gt; in MusicX.ListenFeature.body.getter : some"
-                  moduleName = "MusicX"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/me/Documents/Xcode/Projects/MusicX/Sources/ListenFeature.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "141"
-                  endingLineNumber = "141">
-               </Location>
-               <Location
-                  uuid = "EEFEAC64-44EF-46DD-88B6-32476FED3773 - 61096db9785dd92f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #3 @Sendable (ComposableArchitecture.Send&lt;MusicX.ListenFeature.Action&gt;) async -&gt; () in closure #1 (inout MusicX.ListenFeature.State, MusicX.ListenFeature.Action) -&gt; ComposableArchitecture.Effect&lt;MusicX.ListenFeature.Action&gt; in MusicX.ListenFeature.body.getter : some"
-                  moduleName = "MusicX"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/me/Documents/Xcode/Projects/MusicX/Sources/ListenFeature.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "142"
-                  endingLineNumber = "142">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "D94013ED-E44F-41E8-8585-8C2A9F5904EA"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Sources/ListenFeature.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "225"
-            endingLineNumber = "225"
+            startingLineNumber = "136"
+            endingLineNumber = "136"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -76,8 +30,8 @@
             filePath = "Sources/ListenFeature.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "98"
-            endingLineNumber = "98"
+            startingLineNumber = "93"
+            endingLineNumber = "93"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
