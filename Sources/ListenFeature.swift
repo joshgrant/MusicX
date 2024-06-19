@@ -234,10 +234,10 @@ struct ListenView: View {
                             
                             // TODO: Fix me?
                             Button {
-                                if store.mediaPlayer.isPlaying, let song = store.currentMediaInformation?.song {
-                                    store.send(.play(song))
+                                if !store.mediaPlayer.isPlaying, let song = store.currentMediaInformation {
+                                    store.send(.mediaPlayer(.play(song)))
                                 } else {
-                                    store.send(.pause)
+                                    store.send(.mediaPlayer(.pause))
                                 }
                             } label: {
                                 if store.isPlaying {
