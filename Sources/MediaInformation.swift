@@ -13,6 +13,8 @@ struct MediaInformation: Equatable {
     var albumArtURL: URL?
     var artistURL: URL?
     var storeURL: URL?
+    
+    var song: Song?
 }
 
 extension MediaInformation {
@@ -25,5 +27,6 @@ extension MediaInformation {
         self.albumArtURL = song.artwork?.url(width: artworkSize, height: artworkSize)
         self.artistURL = song.artistURL
         self.storeURL = song.url
+        self.song = song
     }
 }

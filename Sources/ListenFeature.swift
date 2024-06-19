@@ -11,6 +11,9 @@ struct ListenFeature {
     
     @ObservableState
     struct State: Equatable {
+        var smallCharacterModel = SmallCharacterModel.State()
+        var mediaPlayer = MediaPlayerFeature.State()
+        
         var buildProgress: Double?
         
         var isLoading: Bool = true
@@ -24,8 +27,6 @@ struct ListenFeature {
         var musicSubscription: MusicSubscription?
         var authorizationStatus: MusicAuthorization.Status = MusicAuthorization.currentStatus
         
-        var smallCharacterModel = SmallCharacterModel.State()
-        
         var modelName = "song-titles"
         var modelCohesion = 3
         
@@ -35,6 +36,9 @@ struct ListenFeature {
     }
     
     enum Action {
+        case smallCharacterModel(SmallCharacterModel.Action)
+        case mediaPlayer(MediaPlayerFeature.Action)
+        
         case onAppear
         
         case openSongURL
@@ -44,10 +48,8 @@ struct ListenFeature {
         case refreshSong
         case songFinishedPlaying
         
-        case smallCharacterModel(SmallCharacterModel.Action)
-        
         case fetchedMediaInformation([MediaInformation])
-        case foundNextSong(MediaInformation)
+        case foundNextSong(mediaInformation: MediaInformation)
         
         case authorized(MusicAuthorization.Status)
         case failedToAuthenticate(Error)
@@ -60,6 +62,7 @@ struct ListenFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
+                // TODO: We don't want this to reload when we view the screen...
                 return .merge([
                     loadEffect(state: &state),
                     .run { send in
@@ -140,21 +143,31 @@ struct ListenFeature {
                         fatalError("There was no temporary media information")
                     }
                     state.isLoading = false
-                    return .send(.foundNextSong(foundSong))
+                    return .send(.foundNextSong(mediaInformation: foundSong))
                 }
-            case .foundNextSong(let song):
-                print("Found song: \(song)!")
-                state.currentMediaInformation = song
-                return .none
+            case .foundNextSong(let mediaInformation):
+                state.currentMediaInformation = mediaInformation
+                if let song = mediaInformation.song {
+                    return .send(.mediaPlayer(.enqueue(song)))
+                } else {
+                    return .none
+                }
             case .failedToAuthenticate(let error):
                 return .run { send in
-                    await MusicAuthorization.request()
+                    let result = await MusicAuthorization.request()
+                    await send(.authorized(result))
                 }
+            case .mediaPlayer:
+                return .none
             }
         }
         
         Scope(state: \.smallCharacterModel, action: \.smallCharacterModel) {
             SmallCharacterModel()
+        }
+        
+        Scope(state: \.mediaPlayer, action: \.mediaPlayer) {
+            MediaPlayerFeature()
         }
     }
     
@@ -177,10 +190,14 @@ struct ListenView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    if let mediaInformation = store.currentMediaInformation {
-                        
-                        // Album artwork
-                        
+                    if let progress = store.buildProgress {
+                        albumArtPlaceholderView
+                        ProgressView("Loading Model", value: progress)
+                    } else if store.isLoading {
+                        albumArtPlaceholderView
+                        ProgressView()
+                            .controlSize(.large)
+                    } else if let mediaInformation = store.currentMediaInformation {
                         AsyncImage(url: mediaInformation.albumArtURL) { image in
                             image
                                 .resizable()
@@ -190,16 +207,6 @@ struct ListenView: View {
                             albumArtPlaceholderView
                         }
                         
-                    } else {
-                        albumArtPlaceholderView
-                    }
-                    
-                    if let progress = store.buildProgress {
-                        ProgressView("Loading Model", value: progress)
-                    } else if store.isLoading {
-                        ProgressView()
-                            .controlSize(.large)
-                    } else if let mediaInformation = store.currentMediaInformation {
                         VStack(spacing: 4) {
                             Text(mediaInformation.artistName)
                             
@@ -225,8 +232,13 @@ struct ListenView: View {
                             }
                             .opacity(0)
                             
+                            // TODO: Fix me?
                             Button {
-                                store.send(.togglePlaying)
+                                if store.mediaPlayer.isPlaying, let song = store.currentMediaInformation?.song {
+                                    store.send(.play(song))
+                                } else {
+                                    store.send(.pause)
+                                }
                             } label: {
                                 if store.isPlaying {
                                     Image(systemName: "pause.fill")
@@ -246,6 +258,8 @@ struct ListenView: View {
                         }
                     }
                     .disabled(store.isLoading)
+                    
+                    // Progress view here for the playback progress
                     
                     Spacer()
                 }

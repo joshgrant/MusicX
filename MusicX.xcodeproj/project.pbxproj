@@ -18,6 +18,8 @@
 		5235DF3116C1594CC012972E /* MediaInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DE5B8B542719B2C8E9D3310 /* MediaInformation.swift */; };
 		679F79055C14D38195DE21AD /* SavedFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B496A0146852FE6304105D3 /* SavedFeature.swift */; };
 		87F217C3CB0BDCF50107938B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7A3D584539700C06444252 /* ContentView.swift */; };
+		8CE39D232C2250F600B8A2FB /* MediaPlayerFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE39D222C2250F600B8A2FB /* MediaPlayerFeature.swift */; };
+		8CE39D252C22530600B8A2FB /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE39D242C22530600B8A2FB /* MusicPlayer.swift */; };
 		9C40FFDA4F776654653E0288 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4CC8B217D6B3880A89DB68 /* SettingsFeature.swift */; };
 		A24DB46071A3ED84D91317BA /* song-titles.txt in Resources */ = {isa = PBXBuildFile; fileRef = 66C29C37850A5AFE13DB2ACC /* song-titles.txt */; };
 		A439E8EF9C8AD55AD2C37ED6 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2FFE621CD2CE4D6756104E2 /* App.swift */; };
@@ -77,6 +79,8 @@
 		74CA000CE52C9629AA7AFE27 /* HistoryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryFeature.swift; sourceTree = "<group>"; };
 		785AA146D66F7D5EAD53D136 /* MusicX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MusicX.xcconfig; sourceTree = "<group>"; };
 		7E6F053DF8C5B34B18308F47 /* song-titles_3.media */ = {isa = PBXFileReference; lastKnownFileType = text; path = "song-titles_3.media"; sourceTree = "<group>"; };
+		8CE39D222C2250F600B8A2FB /* MediaPlayerFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerFeature.swift; sourceTree = "<group>"; };
+		8CE39D242C22530600B8A2FB /* MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
 		9613D7B05AE9894256600CE2 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		97FE529E361E724B6188F7BF /* MusicX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MusicX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9DE5B8B542719B2C8E9D3310 /* MediaInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaInformation.swift; sourceTree = "<group>"; };
@@ -118,6 +122,8 @@
 				117490DB02311AC205E0D093 /* ListenFeature.swift */,
 				9DE5B8B542719B2C8E9D3310 /* MediaInformation.swift */,
 				35BACA9E728DB64A72BB0A58 /* MusicService.swift */,
+				8CE39D222C2250F600B8A2FB /* MediaPlayerFeature.swift */,
+				8CE39D242C22530600B8A2FB /* MusicPlayer.swift */,
 				0B496A0146852FE6304105D3 /* SavedFeature.swift */,
 				CE4CC8B217D6B3880A89DB68 /* SettingsFeature.swift */,
 			);
@@ -310,6 +316,7 @@
 				400091AD2F9AB1F65B64DD55 /* TuistBundle+MusicX.swift in Sources */,
 				A439E8EF9C8AD55AD2C37ED6 /* App.swift in Sources */,
 				B8FE9153878902D05330C73F /* AppFeature.swift in Sources */,
+				8CE39D252C22530600B8A2FB /* MusicPlayer.swift in Sources */,
 				87F217C3CB0BDCF50107938B /* ContentView.swift in Sources */,
 				478A62B97D2E570C841358C2 /* HistoryFeature.swift in Sources */,
 				BD971B3AFA3E8334AD37B28C /* Item.swift in Sources */,
@@ -318,6 +325,7 @@
 				3B820745BC8978E89F65845D /* MusicService.swift in Sources */,
 				679F79055C14D38195DE21AD /* SavedFeature.swift in Sources */,
 				9C40FFDA4F776654653E0288 /* SettingsFeature.swift in Sources */,
+				8CE39D232C2250F600B8A2FB /* MediaPlayerFeature.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
