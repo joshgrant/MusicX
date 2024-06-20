@@ -255,6 +255,12 @@ struct ListenView: View {
             if let releaseDate = media.releaseDate {
                 Text(releaseDate.formatted(date: .numeric, time: .omitted))
             }
+            
+            if let genres = media.genreNames {
+                ForEach(genres, id: \.self) {
+                    Text($0)
+                }
+            }
         }
     }
     
