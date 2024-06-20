@@ -6,6 +6,7 @@ import SwiftUI
 import ComposableArchitecture
 import MediaPlayer
 import MusicKit
+import Combine
 
 @Reducer
 struct MediaPlayerFeature {
@@ -25,30 +26,31 @@ struct MediaPlayerFeature {
         case skip
     }
     
-    @Dependency(\.musicPlayer) var musicPlayer
+    // Back to dependency?
+    var player: ApplicationMusicPlayer = .shared
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                musicPlayer.queue = []
-                if !musicPlayer.isPreparedToPlay {
+                player.queue = []
+                if !player.isPreparedToPlay {
                     return .run { send in
-                        try await musicPlayer.prepareToPlay()
+                        try await player.prepareToPlay()
                     }
                 } else {
                     return .none
                 }
             case .pause:
                 state.isPlaying = false
-                musicPlayer.pause()
+                player.pause()
                 return .none
             case .playSong(let song):
                 state.isPlaying = true
                 return .run { send in
                     do {
-                        musicPlayer.queue = [song]
-                        try await musicPlayer.play()
+                        player.queue = [song]
+                        try await player.play()
                     } catch {
                         print(error)
                     }
@@ -66,11 +68,11 @@ struct MediaPlayerFeature {
                 }
             case .enqueue(let song):
                 return .run { send in
-                    try await musicPlayer.queue.insert(song, position: .afterCurrentEntry)
+                    try await player.queue.insert(song, position: .afterCurrentEntry)
                 }
             case .skip:
                 return .run { send in
-                    try await musicPlayer.skipToNextEntry()
+                    try await player.skipToNextEntry()
                 }
             }
         }

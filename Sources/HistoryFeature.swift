@@ -52,12 +52,13 @@ struct HistoryView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading) {
-                    ForEach(store.songSnippets) { state in
+                    ForEach(store.songSnippets.reversed()) { state in
                         SongSnippetView(store: .init(initialState: state, reducer: {
                             SongSnippetFeature()
                         }))
                     }
                 }
+                .padding(16)
             }
             .navigationTitle("History")
         }

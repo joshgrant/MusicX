@@ -38,7 +38,6 @@ struct ListenFeature {
         case saveToFavoritesToggled
         
         case refreshSong
-        case songFinishedPlaying
         
         case attemptToLoadFirstSong
         
@@ -77,9 +76,6 @@ struct ListenFeature {
                 state.isLoading = true
                 // Start with 2 just to reduce API calls
                 return .send(.smallCharacterModel(.wordGenerator(.generate(prefix: "", length: 5))))
-            case .songFinishedPlaying:
-                return .none
-                // Small character model
             case .smallCharacterModel(.modelLoader(.delegate(.modelLoadingFailed(let error)))):
                 print(error)
                 guard state.buildProgress == nil else {
@@ -166,6 +162,8 @@ struct ListenView: View {
     
     @Bindable var store: StoreOf<ListenFeature>
     
+    @ObservedObject private var playerState = ApplicationMusicPlayer.shared.state
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -178,76 +176,14 @@ struct ListenView: View {
                         ProgressView()
                             .controlSize(.large)
                     } else if let mediaInformation = store.currentMediaInformation {
-                        AsyncImage(url: mediaInformation.albumArtURL) { image in
-                            image
-                                .resizable()
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                                .aspectRatio(1, contentMode: .fit)
-                        } placeholder: {
-                            albumArtPlaceholderView
-                        }
-                        .frame(maxWidth: 512, maxHeight: 512)
-                        
-                        VStack(spacing: 4) {
-                            if let artistName = mediaInformation.artistName {
-                                Text(artistName)
-                            }
-                            
-                            if let albumName = mediaInformation.albumName {
-                                Text(albumName)
-                            }
-                            
-                            if let songName = mediaInformation.songName {
-                                Text(songName)
-                            }
-                            
-                            if let releaseDate = mediaInformation.releaseDate {
-                                Text(releaseDate.formatted(date: .numeric, time: .omitted))
-                            }
-                        }
+                        artistView(media: mediaInformation)
                     }
                     
-                    Group {
-                        HStack(spacing: 40) {
-                            // This is just for layout purposes
-                            Button {
-                            } label: {
-                                Image(systemName: "forward.fill")
-                                    .font(.largeTitle)
-                            }
-                            .buttonStyle(.plain)
-                            .opacity(0)
-                            
-                            // TODO: Fix me?
-                            Button {
-                                if !store.mediaPlayer.isPlaying, let media = store.currentMediaInformation, let id = media.musicId {
-                                    store.send(.mediaPlayer(.playMedia(id)))
-                                } else {
-                                    store.send(.mediaPlayer(.pause))
-                                }
-                            } label: {
-                                if store.mediaPlayer.isPlaying {
-                                    Image(systemName: "pause.fill")
-                                        .font(.largeTitle)
-                                } else {
-                                    Image(systemName: "play.fill")
-                                        .font(.largeTitle)
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            
-                            Button {
-                                store.send(.refreshSong)
-                            } label: {
-                                Image(systemName: "forward.fill")
-                                    .font(.largeTitle)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .disabled(store.isLoading)
+                    playbackControls
                     
-                    // Progress view here for the playback progress
+                    ProgressView(value: ApplicationMusicPlayer.shared.playbackTime, total: ApplicationMusicPlayer.shared.queue.currentEntry?.endTime ?? 1)
+                    
+                    // TODO: Progress view here for the playback progress
                     
                     Spacer()
                 }
@@ -288,6 +224,82 @@ struct ListenView: View {
             .fill(Color.accentColor)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: 512)
+    }
+    
+    @ViewBuilder
+    private func artistView(media: Media) -> some View {
+        AsyncImage(url: media.albumArtURL) { image in
+            image
+                .resizable()
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .aspectRatio(1, contentMode: .fit)
+        } placeholder: {
+            albumArtPlaceholderView
+        }
+        .frame(maxWidth: 512, maxHeight: 512)
+        
+        VStack(spacing: 4) {
+            if let artistName = media.artistName {
+                Text(artistName)
+            }
+            
+            if let albumName = media.albumName {
+                Text(albumName)
+            }
+            
+            if let songName = media.songName {
+                Text(songName)
+            }
+            
+            if let releaseDate = media.releaseDate {
+                Text(releaseDate.formatted(date: .numeric, time: .omitted))
+            }
+        }
+    }
+    
+    private var playbackControls: some View {
+        Group {
+            HStack(spacing: 40) {
+                // This is just for layout purposes
+                Button {
+                } label: {
+                    Image(systemName: "forward.fill")
+                        .font(.largeTitle)
+                }
+                .buttonStyle(.plain)
+                .opacity(0)
+                
+                // TODO: Fix me?
+                Button {
+                    if !store.mediaPlayer.isPlaying,
+                       let media = store.currentMediaInformation,
+                        let id = media.musicId {
+                        store.send(.mediaPlayer(.playMedia(id)))
+                    } else {
+                        store.send(.mediaPlayer(.pause))
+                    }
+                } label: {
+                    if store.mediaPlayer.isPlaying {
+                        Image(systemName: "pause.fill")
+                            .font(.largeTitle)
+                    } else {
+                        Image(systemName: "play.fill")
+                            .font(.largeTitle)
+                    }
+                }
+                .buttonStyle(.plain)
+                
+                Button {
+                    store.send(.refreshSong)
+                } label: {
+                    Image(systemName: "forward.fill")
+                        .font(.largeTitle)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .disabled(store.isLoading)
     }
 }
 
