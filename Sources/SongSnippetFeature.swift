@@ -21,6 +21,7 @@ struct SongSnippetFeature {
     
     enum Action {
         case openInStore
+        case toggleBookmarked(Bool)
     }
     
     @Dependency(\.openURL) var openURL
@@ -35,6 +36,12 @@ struct SongSnippetFeature {
                     }
                 }
                 return .none
+            case .toggleBookmarked(let bookmarked):
+                return .run { [media = state.media] send in
+                    await MainActor.run {
+                        media.bookmarked = bookmarked
+                    }
+                }
             }
         }
     }
@@ -63,6 +70,15 @@ struct SongSnippetView: View {
                     .font(.title2)
             }
             Spacer()
+            
+            if store.state.media.bookmarked {
+                Button {
+                    store.send(.toggleBookmarked(!store.state.media.bookmarked))
+                } label: {
+                    Image(systemName: "bookmark.fill")
+                }
+                .buttonStyle(.plain)
+            }
             
             Button {
                 store.send(.openInStore)

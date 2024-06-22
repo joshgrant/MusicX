@@ -17,6 +17,7 @@ struct HistoryFeature {
         case onAppear
         case gotFetchResults([Media])
         case delete(Media)
+        case toggleBookmark(Media)
     }
     
     @Dependency(\.database) var database
@@ -35,8 +36,18 @@ struct HistoryFeature {
                     .init(media: $0)
                 })
                 return .none
-            case .delete:
-                return .none
+            case .delete(let media):
+                return .run { send in
+                    await MainActor.run {
+                        database.context().delete(media)
+                    }
+                }
+            case .toggleBookmark(let media):
+                return .run { send in
+                    await MainActor.run {
+                        media.bookmarked.toggle()
+                    }
+                }
             }
         }
     }
@@ -44,27 +55,30 @@ struct HistoryFeature {
 
 import SwiftUI
 import SwiftData
+import Combine
 
 struct HistoryView: View {
     
     @Bindable var store: StoreOf<HistoryFeature>
     
+    @Query var media: [Media]
+    
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(alignment: .leading) {
-                    ForEach(snippets.reversed()) { state in
-                        SongSnippetView(store: .init(initialState: state, reducer: {
-                            SongSnippetFeature()
-                        }))
-                    }
+            List {
+                ForEach(snippets.reversed()) { state in
+                    SongSnippetView(store: .init(initialState: state, reducer: {
+                        SongSnippetFeature()
+                    }))
                 }
-                .padding(16)
             }
             .navigationTitle("History")
         }
         .onAppear {
             store.send(.onAppear)
+        }
+        .onChange(of: media) { oldValue, newValue in
+            store.send(.gotFetchResults(newValue))
         }
     }
     

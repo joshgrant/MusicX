@@ -192,28 +192,26 @@ struct ListenView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    if let progress = store.buildProgress {
-                        albumArtPlaceholderView
-                        ProgressView("Loading Model", value: progress)
-                    } else if store.isLoading {
-                        albumArtPlaceholderView
-                        ProgressView()
-                            .controlSize(.large)
-                    }
-                    
-                    if let mediaInformation = store.currentMediaInformation {
-                       artworkView(media: mediaInformation)
-                   }
-                    
-                    // TODO: Progress view here for the playback progress
-                    
-                    Spacer()
+            VStack(spacing: 16) {
+                if let progress = store.buildProgress {
+                    albumArtPlaceholderView
+                    ProgressView("Loading Model", value: progress)
+                } else if store.isLoading {
+                    albumArtPlaceholderView
+                    ProgressView()
+                        .controlSize(.large)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(16)
+                
+                if let mediaInformation = store.currentMediaInformation {
+                    artworkView(media: mediaInformation)
+                }
+                
+                // TODO: Progress view here for the playback progress
+                
+                Spacer()
             }
+            .frame(maxWidth: .infinity)
+            .padding(16)
             .safeAreaInset(edge: .bottom, content: {
                 bottomView
             })
@@ -320,7 +318,7 @@ struct ListenView: View {
                 Button {
                     if !store.mediaPlayer.isPlaying,
                        let media = store.currentMediaInformation,
-                        let id = media.musicId {
+                       let id = media.musicId {
                         store.send(.mediaPlayer(.playMedia(id)))
                     } else {
                         store.send(.mediaPlayer(.pause))
