@@ -19,15 +19,17 @@ struct MediaPlayerFeature {
     
     enum Action {
         case onAppear
+        case play
         case pause
-        case playSong(Song)
-        case playMedia(MusicItemID)
-        case enqueue(Song)
+//        case playSong(Song)
+//        case playMedia(MusicItemID)
+        case enqueueSong(Song)
+        case enqueueMedia(MusicItemID)
         case skip
     }
     
     // Back to dependency?
-    var player: ApplicationMusicPlayer = .shared
+    var player = ApplicationMusicPlayer.shared
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -43,32 +45,53 @@ struct MediaPlayerFeature {
                 }
             case .pause:
                 state.isPlaying = false
-                player.pause()
-                return .none
-            case .playSong(let song):
+                return .run { send in
+                    player.pause()
+                }
+//            case .playSong(let song):
+//                state.isPlaying = true
+//                return .run { send in
+//                    do {
+//                        player.queue = [song]
+//                        try await player.play()
+//                    } catch {
+//                        print(error)
+//                    }
+//                }
+//            case .playMedia(let id):
+//                return .run { send in
+//                    let request = MusicCatalogResourceRequest<Song>(
+//                        matching: \.id,
+//                        equalTo: id)
+//                    if let song = try await request.response().items.first {
+//                        await send(.playSong(song))
+//                    } else {
+//                        fatalError()
+//                    }
+//                }
+            case .play:
                 state.isPlaying = true
                 return .run { send in
                     do {
-                        player.queue = [song]
                         try await player.play()
                     } catch {
                         print(error)
                     }
                 }
-            case .playMedia(let id):
+            case .enqueueSong(let song):
+                return .run { send in
+                    try await player.queue.insert(song, position: .afterCurrentEntry)
+                }
+            case .enqueueMedia(let id):
                 return .run { send in
                     let request = MusicCatalogResourceRequest<Song>(
                         matching: \.id,
                         equalTo: id)
                     if let song = try await request.response().items.first {
-                        await send(.playSong(song))
+                        await send(.enqueueSong(song))
                     } else {
                         fatalError()
                     }
-                }
-            case .enqueue(let song):
-                return .run { send in
-                    try await player.queue.insert(song, position: .afterCurrentEntry)
                 }
             case .skip:
                 return .run { send in

@@ -24,7 +24,7 @@ struct ListenFeature {
         
         var isLoading: Bool = true
         var currentQuery: String? = nil
-        var currentMediaInformation: Media?
+//        var currentMediaInformation: Media?
         var temporaryMediaInformation: Media?
         
         var currentPlaybackTime: TimeInterval?
@@ -66,7 +66,7 @@ struct ListenFeature {
                     fatalError()
                 }
             case .openSongURL:
-                if let url = state.currentMediaInformation?.storeURL {
+                if let url = musicService.currentSong()?.url {
                     return .run { send in
                         await openURL(url)
                     }
@@ -74,8 +74,17 @@ struct ListenFeature {
                     return .none
                 }
             case .saveToFavoritesToggled:
-                state.currentMediaInformation?.bookmarked.toggle()
-                return .none
+                return .run { send in
+                    @Dependency(\.database) var database
+                    let request = FetchDescriptor<Media>(predicate: #Predicate { input in
+                        input.musicId?.rawValue == musicService.currentSong()?.id.rawValue
+                    })
+                    guard let mediaItem = await database.context().fetch(request).first else {
+                        XCTFail("Shouldn't save to favorites if the song doesn't exist")
+                        return
+                    }
+                    mediaItem.bookmarked.toggle()
+                }
             case .refreshSong:
                 state.isLoading = true
                 // Start with 2 just to reduce API calls
@@ -126,7 +135,7 @@ struct ListenFeature {
                 print("FOUND SONG: \(word)")
                 if let id = media.musicId {
                     state.currentMediaInformation = media
-                    return .send(.mediaPlayer(.playMedia(id)))
+                    return .send(.mediaPlayer(.enqueueMedia(id)))
                 } else {
                     fatalError()
                 }
@@ -233,11 +242,10 @@ struct ListenView: View {
                     .disabled(store.state.currentMediaInformation == nil)
                 }
             }
-            .refreshable {
-                store.send(.refreshSong)
-            }
             .onChange(of: playbackStatus) { oldValue, newValue in
                 store.send(.playbackStatusChanged(newValue, ApplicationMusicPlayer.shared.playbackTime))
+                
+                
             }
         }
     }
@@ -316,7 +324,8 @@ struct ListenView: View {
                     if !store.mediaPlayer.isPlaying,
                        let media = store.currentMediaInformation,
                        let id = media.musicId {
-                        store.send(.mediaPlayer(.playMedia(id)))
+//                        store.send(.mediaPlayer(.enqueueMedia(id)))
+                        store.send(.mediaPlayer(.play))
                     } else {
                         store.send(.mediaPlayer(.pause))
                     }

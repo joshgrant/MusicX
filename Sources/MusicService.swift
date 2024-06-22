@@ -21,6 +21,8 @@ struct MusicService {
     var playbackTime: () -> TimeInterval
     var playbackStatus: () -> MusicPlayer.PlaybackStatus
     var playbackRate: () -> Float
+    
+    var currentSong: () -> Song?
 }
 
 extension MusicService: DependencyKey {
@@ -49,7 +51,7 @@ extension MusicService: DependencyKey {
             let response = try await request.response()
             
             return response.songs.map { .init(song: $0) }
-        }, 
+        },
         playbackTime: {
             ApplicationMusicPlayer.shared.playbackTime
         },
@@ -58,6 +60,14 @@ extension MusicService: DependencyKey {
         },
         playbackRate: {
             ApplicationMusicPlayer.shared.state.playbackRate
+        },
+        currentSong: {
+            switch ApplicationMusicPlayer.shared.queue.currentEntry?.item {
+            case .song(let song):
+                return song
+            default:
+                return nil
+            }
         }
     )
     
@@ -69,7 +79,8 @@ extension MusicService: DependencyKey {
         },
         playbackTime: { 1 },
         playbackStatus: { .playing },
-        playbackRate: { 1 }
+        playbackRate: { 1 },
+        currentSong: { nil }
     )
 }
 
