@@ -200,15 +200,9 @@ struct ListenView: View {
                     albumArtPlaceholderView
                     ProgressView()
                         .controlSize(.large)
-                }
-                
-                if let mediaInformation = store.currentMediaInformation {
+                } else if let mediaInformation = store.currentMediaInformation {
                     artworkView(media: mediaInformation)
                 }
-                
-                // TODO: Progress view here for the playback progress
-                
-                Spacer()
             }
             .frame(maxWidth: .infinity)
             .padding(16)
@@ -290,11 +284,14 @@ struct ListenView: View {
                     }
                     
                     if let genres = media.genreNames {
-                        HStack {
-                            ForEach(genres, id: \.self) {
-                                Text($0)
+                        ScrollView(.horizontal) {
+                            HStack {
+                                ForEach(genres, id: \.self) {
+                                    Text($0)
+                                }
                             }
                         }
+                        .scrollIndicators(.hidden)
                     }
                 }
                 

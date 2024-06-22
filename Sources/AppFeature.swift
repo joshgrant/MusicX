@@ -16,35 +16,37 @@ struct AppFeature {
         case settings
     }
     
+    enum FilterPickerOption: String {
+        case history = "History"
+        case saved = "Saved"
+    }
+    
     @ObservableState
     struct State: Equatable {
         var selectedTab: Tab = .listen
+        var selectedFilterPickerOption: FilterPickerOption = .history
         
         var showingSettingsPopover: Bool = false
-        var showingFilterPopover: Bool = false
         var showingOnlyBookmarkedItems: Bool = false
         
         var listen = ListenFeature.State()
         var history = HistoryFeature.State()
         var saved = SavedFeature.State()
         var settings = SettingsFeature.State()
-        
-        var filter = FilterFeature.State()
     }
     
     enum Action {
         case onAppear
         
         case selectedTabChanged(Tab)
+        case filterPickerOptionChanged(FilterPickerOption)
         
         case settingsButtonTapped(Bool)
-        case filterButtonTapped(Bool)
         
         case listen(ListenFeature.Action)
         case history(HistoryFeature.Action)
         case saved(SavedFeature.Action)
         case settings(SettingsFeature.Action)
-        case filter(FilterFeature.Action)
     }
     
     @Dependency(\.database) var database
@@ -66,20 +68,22 @@ struct AppFeature {
             case .settingsButtonTapped(let show):
                 state.showingSettingsPopover = show
                 return .none
-            case .filterButtonTapped(let show):
-                state.showingFilterPopover = show
-                return .none
             case .listen, .history, .saved, .settings:
                 return .none
-            case .filter(.showBookmarked(let show)):
-                state.showingOnlyBookmarkedItems = show
-                state.history.showingOnlyBookmarks = show
+            case .filterPickerOptionChanged(let option):
+                state.selectedFilterPickerOption = option
+                
+                switch option {
+                case .history:
+                    state.showingOnlyBookmarkedItems = false
+                    state.history.showingOnlyBookmarks = false
+                case .saved:
+                    state.showingOnlyBookmarkedItems = true
+                    state.history.showingOnlyBookmarks = true
+                }
+                
                 return .none
             }
-        }
-        
-        Scope(state: \.filter, action: \.filter) {
-            FilterFeature()
         }
         
         Scope(state: \.listen, action: \.listen) {
@@ -136,18 +140,14 @@ struct AppView: View {
                 }
                 .toolbar {
                     ToolbarItem {
-                        Text("History")
-                            .font(.headline)
-                    }
-                    
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            store.send(.filterButtonTapped(true))
+                        Picker(selection: $store.selectedFilterPickerOption.sending(\.filterPickerOptionChanged)) {
+                            Text("History")
+                                .tag(AppFeature.FilterPickerOption.history)
+                            Text("Saved")
+                                .tag(AppFeature.FilterPickerOption.saved)
                         } label: {
-                            Image(systemName: "line.3.horizontal.decrease.circle")
-                        }
-                        .popover(isPresented: $store.showingFilterPopover.sending(\.filterButtonTapped)) {
-                            FilterView(store: store.scope(state: \.filter, action: \.filter))
+                            Text(store.selectedFilterPickerOption.rawValue)
+                                .font(.headline)
                         }
                     }
                 }

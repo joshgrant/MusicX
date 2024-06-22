@@ -70,6 +70,20 @@ struct HistoryView: View {
                     SongSnippetView(store: .init(initialState: state, reducer: {
                         SongSnippetFeature()
                     }))
+                    .swipeActions {
+                        Button {
+                            store.send(.toggleBookmark(state.media), animation: .snappy)
+                        } label: {
+                            Label("", systemImage: "bookmark.fill")
+                        }
+                        .tint(Color.accentColor)
+                        
+                        Button(role: .destructive) {
+                            store.send(.delete(state.media), animation: .snappy)
+                        } label: {
+                            Label("", systemImage: "trash.fill")
+                        }
+                    }
                 }
             }
             .navigationTitle("History")
