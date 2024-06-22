@@ -27,6 +27,7 @@ final class Media {
     var genreNames: [String]?
     
     var musicId: MusicItemID?
+    var duration: TimeInterval?
     
     var bookmarked: Bool = false
     
@@ -40,7 +41,8 @@ final class Media {
         artistURL: URL? = nil,
         storeURL: URL? = nil,
         genreNames: [String] = [],
-        musicId: MusicItemID
+        musicId: MusicItemID,
+        duration: TimeInterval? = nil
     ) {
         self.timestamp = .now
         self.artistName = artistName
@@ -53,6 +55,7 @@ final class Media {
         self.storeURL = storeURL
         self.genreNames = genreNames
         self.musicId = musicId
+        self.duration = duration
     }
     
     convenience init(song: Song, fullArtworkSize: Int = 512, snippetArtworkSize: Int = 64) {
@@ -66,6 +69,7 @@ final class Media {
             artistURL: song.artistURL,
             storeURL: song.url,
             genreNames: song.genreNames,
-            musicId: song.id)
+            musicId: song.id,
+            duration: song.duration)
     }
 }

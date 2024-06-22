@@ -6,6 +6,7 @@ import ComposableArchitecture
 import SmallCharacterModel
 import MusicKit
 import SwiftData
+import Combine
 
 @Reducer
 struct ListenFeature {
@@ -25,6 +26,7 @@ struct ListenFeature {
         var currentQuery: String? = nil
         var currentMediaInformation: Media?
         var temporaryMediaInformation: Media?
+        
         var currentPlaybackTime: TimeInterval?
         
         var musicSubscription: MusicSubscription?
@@ -41,11 +43,13 @@ struct ListenFeature {
         
         case attemptToLoadFirstSong
         
-        case fetchedMediaInformation([Media])
-        case foundNextSong(mediaInformation: Media)
+        case fetchedMediaInformation(word: String, searchResults: [Media])
+        case foundNextSong(word: String, mediaInformation: Media)
         
         case authorized(MusicAuthorization.Status)
         case failedToAuthenticate(Error)
+        
+        case playbackStatusChanged(MusicPlayer.PlaybackStatus, TimeInterval)
     }
     
     @Dependency(\.openURL) var openURL
@@ -93,18 +97,17 @@ struct ListenFeature {
                 return .send(.attemptToLoadFirstSong)
             case .smallCharacterModel(.wordGenerator(.delegate(.newWord(let word)))):
                 state.currentQuery = word
-                print("SET WORD: \(word)")
                 return .run { send in
                     do {
                         let mediaInformation = try await musicService.search(word)
-                        await send(.fetchedMediaInformation(mediaInformation))
+                        await send(.fetchedMediaInformation(word: word, searchResults: mediaInformation))
                     } catch {
                         await send(.failedToAuthenticate(error))
                     }
                 }
             case .smallCharacterModel:
                 return .none
-            case .fetchedMediaInformation(let mediaInformation):
+            case .fetchedMediaInformation(let word, let mediaInformation):
                 if let element = mediaInformation.randomElement() {
                     state.temporaryMediaInformation = element
                     return .send(.smallCharacterModel(.wordGenerator(.generate(
@@ -117,9 +120,10 @@ struct ListenFeature {
                     state.isLoading = false
                     @Dependency(\.database) var database
                     database.context().insert(foundSong)
-                    return .send(.foundNextSong(mediaInformation: foundSong))
+                    return .send(.foundNextSong(word: word, mediaInformation: foundSong))
                 }
-            case .foundNextSong(let media):
+            case .foundNextSong(let word, let media):
+                print("FOUND SONG: \(word)")
                 if let id = media.musicId {
                     state.currentMediaInformation = media
                     return .send(.mediaPlayer(.playMedia(id)))
@@ -143,6 +147,25 @@ struct ListenFeature {
                 }
                 
                 return .send(.refreshSong)
+            case .playbackStatusChanged(let status, let time):
+                state.currentPlaybackTime = time
+                switch status {
+                case .stopped:
+                    print("STOPPED")
+                case .playing:
+                    print("PLAYING")
+                case .paused:
+                    print("PAUSED")
+                case .interrupted:
+                    print("INTERRUPTED")
+                case .seekingForward:
+                    print("SEEKING F")
+                case .seekingBackward:
+                    print("SEEKING B")
+                @unknown default:
+                    print("DEFAULT")
+                }
+                return .none
             }
         }
         
@@ -161,8 +184,11 @@ import SwiftUI
 struct ListenView: View {
     
     @Bindable var store: StoreOf<ListenFeature>
+    @ObservedObject var state = ApplicationMusicPlayer.shared.state
     
-    @ObservedObject private var playerState = ApplicationMusicPlayer.shared.state
+    var playbackStatus: ApplicationMusicPlayer.PlaybackStatus {
+        state.playbackStatus
+    }
     
     var body: some View {
         NavigationStack {
@@ -175,20 +201,22 @@ struct ListenView: View {
                         albumArtPlaceholderView
                         ProgressView()
                             .controlSize(.large)
-                    } else if let mediaInformation = store.currentMediaInformation {
-                        artistView(media: mediaInformation)
                     }
                     
-                    playbackControls
-                    
-                    ProgressView(value: ApplicationMusicPlayer.shared.playbackTime, total: ApplicationMusicPlayer.shared.queue.currentEntry?.endTime ?? 1)
+                    if let mediaInformation = store.currentMediaInformation {
+                       artworkView(media: mediaInformation)
+                   }
                     
                     // TODO: Progress view here for the playback progress
                     
                     Spacer()
                 }
+                .frame(maxWidth: .infinity)
                 .padding(16)
             }
+            .safeAreaInset(edge: .bottom, content: {
+                bottomView
+            })
             .navigationTitle("Listen")
             .toolbar {
                 ToolbarItem {
@@ -216,6 +244,9 @@ struct ListenView: View {
             .refreshable {
                 store.send(.refreshSong)
             }
+            .onChange(of: playbackStatus) { oldValue, newValue in
+                store.send(.playbackStatusChanged(newValue, ApplicationMusicPlayer.shared.playbackTime))
+            }
         }
     }
     
@@ -228,7 +259,7 @@ struct ListenView: View {
     }
     
     @ViewBuilder
-    private func artistView(media: Media) -> some View {
+    private func artworkView(media: Media) -> some View {
         AsyncImage(url: media.albumArtURL) { image in
             image
                 .resizable()
@@ -238,34 +269,43 @@ struct ListenView: View {
             albumArtPlaceholderView
         }
         .frame(maxWidth: 512, maxHeight: 512)
-        
-        VStack(spacing: 4) {
-            if let artistName = media.artistName {
-                Text(artistName)
-            }
-            
-            if let albumName = media.albumName {
-                Text(albumName)
-            }
-            
-            if let songName = media.songName {
-                Text(songName)
-            }
-            
-            if let releaseDate = media.releaseDate {
-                Text(releaseDate.formatted(date: .numeric, time: .omitted))
-            }
-            
-            if let genres = media.genreNames {
-                ForEach(genres, id: \.self) {
-                    Text($0)
-                }
-            }
-        }
     }
     
-    private var playbackControls: some View {
-        Group {
+    private var bottomView: some View {
+        VStack {
+            if let media = store.currentMediaInformation {
+                VStack(spacing: 4) {
+                    if let artistName = media.artistName {
+                        Text(artistName)
+                    }
+                    
+                    if let albumName = media.albumName {
+                        Text(albumName)
+                    }
+                    
+                    if let songName = media.songName {
+                        Text(songName)
+                    }
+                    
+                    if let releaseDate = media.releaseDate {
+                        Text(releaseDate.formatted(date: .numeric, time: .omitted))
+                    }
+                    
+                    if let genres = media.genreNames {
+                        HStack {
+                            ForEach(genres, id: \.self) {
+                                Text($0)
+                            }
+                        }
+                    }
+                }
+                
+                if let duration = media.duration, let time = store.currentPlaybackTime {
+                    ProgressView(value: time, total: duration)
+                        .animation(.easeInOut(duration: duration - time), value: time)
+                }
+            }
+            
             HStack(spacing: 40) {
                 // This is just for layout purposes
                 Button {
@@ -305,7 +345,10 @@ struct ListenView: View {
                 .buttonStyle(.plain)
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(16)
         .disabled(store.isLoading)
+        .background(.thickMaterial)
     }
 }
 

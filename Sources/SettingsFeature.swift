@@ -55,33 +55,36 @@ struct SettingsView: View {
     @Bindable var store: StoreOf<SettingsFeature>
     
     var body: some View {
+#if os(macOS)
+        form
+            .padding(16)
+#elseif os(iOS)
         NavigationStack {
-            List {
-                HStack {
-                    Picker("Search Type", selection: $store.searchType.sending(\.searchTypeChanged)) {
-                        ForEach(SettingsFeature.SearchType.allCases, id: \.self) { type in
-                            Text(type.rawValue)
-                                .tag(type)
-                        }
-                    }
-                }
-                
-                HStack {
-                    Picker("Random Mode", selection: $store.randomMode.sending(\.randomModeChanged)) {
-                        ForEach(SettingsFeature.RandomMode.allCases, id: \.self) { mode in
-                            Text(mode.rawValue)
-                                .tag(mode)
-                        }
-                    }
-                }
-                
-                HStack {
-                    Toggle(isOn: $store.autoPlay.sending(\.toggleAutoPlay)) {
-                        Text("Auto Play")
-                    }
+            form
+                .navigationTitle("Settings")
+        }
+#endif
+    }
+    
+    var form: some View {
+        Form {
+            Picker("Search Type", selection: $store.searchType.sending(\.searchTypeChanged)) {
+                ForEach(SettingsFeature.SearchType.allCases, id: \.self) { type in
+                    Text(type.rawValue)
+                        .tag(type)
                 }
             }
-            .navigationTitle("Settings")
+            
+            Picker("Random Mode", selection: $store.randomMode.sending(\.randomModeChanged)) {
+                ForEach(SettingsFeature.RandomMode.allCases, id: \.self) { mode in
+                    Text(mode.rawValue)
+                        .tag(mode)
+                }
+            }
+            
+            Toggle(isOn: $store.autoPlay.sending(\.toggleAutoPlay)) {
+                Text("Auto Play")
+            }
         }
     }
 }

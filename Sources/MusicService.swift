@@ -4,6 +4,7 @@
 import Foundation
 import ComposableArchitecture
 import MusicKit
+import Combine
 
 struct MusicService {
     
@@ -16,6 +17,10 @@ struct MusicService {
     
     var authorizationStatus: () -> AuthorizationStatus
     var search: (_ searchTerm: String) async throws -> [Media]
+    
+    var playbackTime: () -> TimeInterval
+    var playbackStatus: () -> MusicPlayer.PlaybackStatus
+    var playbackRate: () -> Float
 }
 
 extension MusicService: DependencyKey {
@@ -44,14 +49,28 @@ extension MusicService: DependencyKey {
             let response = try await request.response()
             
             return response.songs.map { .init(song: $0) }
-        })
+        }, 
+        playbackTime: {
+            ApplicationMusicPlayer.shared.playbackTime
+        },
+        playbackStatus: {
+            ApplicationMusicPlayer.shared.state.playbackStatus
+        },
+        playbackRate: {
+            ApplicationMusicPlayer.shared.state.playbackRate
+        }
+    )
     
     static var testValue: MusicService = .init(
         authorizationStatus: { .authorized },
         search: { searchTerm in
             return [
             ]
-        })
+        },
+        playbackTime: { 1 },
+        playbackStatus: { .playing },
+        playbackRate: { 1 }
+    )
 }
 
 extension DependencyValues {

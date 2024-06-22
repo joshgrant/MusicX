@@ -9,6 +9,7 @@ struct HistoryFeature {
     
     @ObservableState
     struct State: Equatable {
+        var showingOnlyBookmarks: Bool = false
         var songSnippets: IdentifiedArrayOf<SongSnippetFeature.State> = .init(uniqueElements: [])
     }
     
@@ -34,7 +35,7 @@ struct HistoryFeature {
                     .init(media: $0)
                 })
                 return .none
-            case .delete(let media):
+            case .delete:
                 return .none
             }
         }
@@ -52,7 +53,7 @@ struct HistoryView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading) {
-                    ForEach(store.songSnippets.reversed()) { state in
+                    ForEach(snippets.reversed()) { state in
                         SongSnippetView(store: .init(initialState: state, reducer: {
                             SongSnippetFeature()
                         }))
@@ -64,6 +65,17 @@ struct HistoryView: View {
         }
         .onAppear {
             store.send(.onAppear)
+        }
+    }
+    
+    var snippets: IdentifiedArrayOf<SongSnippetFeature.State>  {
+        if store.showingOnlyBookmarks {
+            store
+                .songSnippets
+                .filter { $0.media.bookmarked }
+        } else {
+            store
+                .songSnippets
         }
     }
 }
