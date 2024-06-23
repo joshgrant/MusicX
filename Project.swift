@@ -5,6 +5,7 @@ let project = Project(
     organizationName: "BCE Labs",
     packages: [
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .branch("main")),
+        .package(url: "https://github.com/stephencelis/SQLite.swift.git", .branch("master")),
         .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", .branch("main"))
     ],
     targets: [
@@ -18,7 +19,8 @@ let project = Project(
             resources: ["Resources/**"],
             dependencies: [
                 .package(product: "ComposableArchitecture"),
-                .package(product: "SmallCharacterModel")
+                .package(product: "SmallCharacterModel"),
+                .package(product: "SQLite")
             ],
             settings: .settings(configurations: [
                 .debug(name: "MusicX.xcconfig")

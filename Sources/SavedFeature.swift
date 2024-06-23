@@ -10,36 +10,37 @@ struct SavedFeature {
     
     @ObservableState
     struct State: Equatable {
-        var songSnippets: IdentifiedArrayOf<SongSnippetFeature.State> = .init(uniqueElements: [])
+//        var songSnippets: IdentifiedArrayOf<SongSnippetFeature.State> = .init(uniqueElements: [])
     }
     
     enum Action {
         case onAppear
-        case gotFetchResults([Media])
-        case delete(Media)
+//        case gotFetchResults([Media])
+//        case delete(Media)
     }
     
-    @Dependency(\.database) var database
+//    @Dependency(\.database) var database
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
                 return .run { send in
-                    let predicate: Predicate<Media> = #Predicate {
-                        $0.bookmarked
-                    }
-                    let descriptor = FetchDescriptor<Media>(predicate: predicate, sortBy: [.init(\.timestamp)])
-                    let results = try database.context().fetch(descriptor)
-                    await send(.gotFetchResults(results))
+//                    let predicate: Predicate<Media> = #Predicate {
+//                        $0.bookmarked
+//                    }
+//                    let descriptor = FetchDescriptor<Media>(predicate: predicate, sortBy: [.init(\.timestamp)])
+//                    let results = try database.context().fetch(descriptor)
+//                    await send(.gotFetchResults(results))
+                    
                 }
-            case .gotFetchResults(let media):
-                state.songSnippets = .init(uniqueElements: media.map {
-                    .init(media: $0)
-                })
-                return .none
-            case .delete(let media):
-                return .none
+//            case .gotFetchResults(let media):
+//                state.songSnippets = .init(uniqueElements: media.map {
+//                    .init(media: $0)
+//                })
+//                return .none
+//            case .delete(let media):
+//                return .none
             }
         }
     }
@@ -51,21 +52,21 @@ struct SavedView: View {
     
     @Bindable var store: StoreOf<SavedFeature>
     
-    @Query var mediaQuery: [Media] {
-        didSet {
-            store.send(.queryChangedMedia(self.savedMedia))
-        }
-    }
+//    @Query var mediaQuery: [Media] {
+//        didSet {
+//            store.send(.queryChangedMedia(self.savedMedia))
+//        }
+//    }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading) {
-                    ForEach(store.songSnippets.reversed()) { state in
-                        SongSnippetView(store: .init(initialState: state, reducer: {
-                            SongSnippetFeature()
-                        }))
-                    }
+//                    ForEach(store.songSnippets.reversed()) { state in
+//                        SongSnippetView(store: .init(initialState: state, reducer: {
+//                            SongSnippetFeature()
+//                        }))
+//                    }
                 }
                 .padding(16)
             }

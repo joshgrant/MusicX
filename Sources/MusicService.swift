@@ -16,7 +16,8 @@ struct MusicService {
     }
     
     var authorizationStatus: () -> AuthorizationStatus
-    var search: (_ searchTerm: String) async throws -> [Media]
+//    var search: (_ searchTerm: String) async throws -> [Media]
+        var search: (_ searchTerm: String) async throws -> [Never]
     
     var playbackTime: () -> TimeInterval
     var playbackStatus: () -> MusicPlayer.PlaybackStatus
@@ -43,14 +44,15 @@ extension MusicService: DependencyKey {
             }
         },
         search: { searchTerm in
-            var request = MusicCatalogSearchRequest(
-                term: searchTerm,
-                types: [Song.self])
-            request.limit = 5
-            
-            let response = try await request.response()
-            
-            return response.songs.map { .init(song: $0) }
+//            var request = MusicCatalogSearchRequest(
+//                term: searchTerm,
+//                types: [Song.self])
+//            request.limit = 5
+//            
+//            let response = try await request.response()
+//            
+//            return response.songs.map { .init(song: $0) }
+            return []
         },
         playbackTime: {
             ApplicationMusicPlayer.shared.playbackTime

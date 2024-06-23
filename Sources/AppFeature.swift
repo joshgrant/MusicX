@@ -49,7 +49,7 @@ struct AppFeature {
         case settings(SettingsFeature.Action)
     }
     
-    @Dependency(\.database) var database
+//    @Dependency(\.database) var database
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in

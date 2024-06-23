@@ -1,5 +1,5 @@
 {
-  "originHash" : "3a09f04fa00fe192e5386cd80c117ba5cd8a5b85862fdd84e392d3118d78f76a",
+  "originHash" : "690a16aabcf18964d8a524b80876aabb8871ae60cfbb40ca7a57f96802b8d5bf",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -17,6 +17,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "a57b3a7c39383bf78249df08bf2483fc81504ac3"
+      }
+    },
+    {
+      "identity" : "sqlite.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stephencelis/SQLite.swift.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "a95fc6df17d108bd99210db5e8a9bac90fe984b8"
       }
     },
     {

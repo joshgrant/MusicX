@@ -9,16 +9,16 @@ import SwiftData
 @main
 struct MyApp: App {
     
-    static let sharedContext: ModelContext = {
-        do {
-            let schema = Schema([Media.self])
-            let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-            let container = try ModelContainer(for: schema, configurations: [configuration])
-            return ModelContext(container)
-        } catch {
-            fatalError("Failed to create container.")
-        }
-    }()
+//    static let sharedContext: ModelContext = {
+//        do {
+//            let schema = Schema([Media.self])
+//            let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+//            let container = try ModelContainer(for: schema, configurations: [configuration])
+//            return ModelContext(container)
+//        } catch {
+//            fatalError("Failed to create container.")
+//        }
+//    }()
     
     static var store = StoreOf<AppFeature>(initialState: AppFeature.State()) {
         AppFeature()
@@ -27,8 +27,12 @@ struct MyApp: App {
     
     var body: some Scene {
         WindowGroup {
-            AppView(store: MyApp.store)
+            if !_XCTIsTesting {
+                AppView(store: MyApp.store)
+            } else {
+                EmptyView()
+            }
         }
-        .modelContext(MyApp.sharedContext)
+//        .modelContext(MyApp.sharedContext)
     }
 }
