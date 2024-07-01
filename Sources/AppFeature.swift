@@ -49,7 +49,7 @@ struct AppFeature {
         case settings(SettingsFeature.Action)
     }
     
-//    @Dependency(\.database) var database
+//    @Dependency(\.connection) var connection
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -60,6 +60,9 @@ struct AppFeature {
                     .run { send in
                         let result = await MusicAuthorization.request()
                         await send(.listen(.authorized(result)))
+                    },
+                    .run { send in
+//                        connection.send
                     }
                 ])
             case .selectedTabChanged(let tab):
