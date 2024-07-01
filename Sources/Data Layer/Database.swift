@@ -4,9 +4,32 @@
 import Foundation
 import SQLite3
 
+// TODO: Types are a failure!!!
+// They have broken the contract... we should remove them... maybe there's a way we can do something like:
+/*
+ 
+ typealias TypeConverter: (Any) -> [String: Any?]
+ 
+ func typeConverter(struct: Any) -> [String: Any?] {
+ // TODO: Do the JSON conversion
+ }
+ 
+ typealias ResultConverter<T: Codable>: (Any?) -> T
+ 
+ func resultConverter<T: Codable>(result: Any?) -> T {
+ // TODO: Encode into the result...
+ }
+ 
+ These converters might need to be passed into the function?
+ They might also be provided by default by some sort of protocol conformance...
+ 
+ */
+
 enum DatabaseError: Error {
     case failed(Int, String)
+    case failedToEncodeObject(Codable)
     case databaseNotInitialized
+    case invalidObject(Codable)
 }
 
 extension DatabaseError: LocalizedError {
@@ -17,6 +40,10 @@ extension DatabaseError: LocalizedError {
             return "❌ Code: \(resultCode) | \(message)"
         case .databaseNotInitialized:
             return "❌ Database not initialized"
+        case .failedToEncodeObject(let object):
+            return "❌ Failed to encode: \(object)"
+        case .invalidObject(let object):
+            return "❌ Invalid: \(object)"
         }
     }
 }
@@ -91,13 +118,13 @@ struct Database {
     typealias SingleParameterBinder = (
         _ statement: Statement,
         _ index: Int32,
-        _ parameter: Any,
+        _ parameter: Any?,
         _ db: Connection
     ) -> ResultCode
     
-    typealias MultiParameterBinder = (
+    typealias MultiParameterBinder<T> = (
         _ statement: Statement,
-        _ parameters: [Any],
+        _ parameters: T,
         _ db: Connection,
         _ singleParameterBinder: SingleParameterBinder,
         _ resultCodeHandler: ResultCodeHandler
@@ -109,8 +136,8 @@ struct Database {
         _ resultCodeHandler: ResultCodeHandler
     ) throws -> Statement
     
-    typealias RowResultHandler = (
-        _ row: [String: Any?]
+    typealias RowResultHandler<T: Codable> = (
+        _ row: T
     ) -> Void
     
     typealias RowValueExtractor = (
@@ -127,16 +154,16 @@ struct Database {
         _ count: Int
     ) -> Void
     
-    typealias QueryExecutor = (
+    typealias QueryExecutor<T: Codable> = (
         _ query: String,
-        _ parameters: [Any],
+        _ dataType: T?,
         _ db: Connection,
         _ singleParameterBinder: @escaping SingleParameterBinder,
-        _ multiParameterBinder: @escaping MultiParameterBinder,
+        _ multiParameterBinder: @escaping MultiParameterBinder<T>,
         _ statementPreparer: @escaping StatementPreparer,
         _ columnNameExtractor: @escaping ColumnNameExtractor,
-        _ rowParser: @escaping RowValueExtractor,
-        _ rowResultHandler: RowResultHandler?,
+        _ rowValueExtractor: @escaping RowValueExtractor,
+        _ rowResultHandler: RowResultHandler<T>?,
         _ resultCountHandler: ResultCountHandler?,
         _ resultCodeHandler: @escaping ResultCodeHandler
     ) throws -> Void
@@ -164,6 +191,7 @@ struct Database {
     
     var singleParameterBinder: SingleParameterBinder = { statement, index, parameter, db in
         let index = Int32(index)
+
         switch parameter {
         case let value as Int:
             return sqlite3_bind_int64(statement.pointer, index, Int64(value))
@@ -176,15 +204,38 @@ struct Database {
         case is NSNull:
             return sqlite3_bind_null(statement.pointer, index)
         default:
-            return .mismatch
+            return .format
         }
     }
     
-    var multiParameterBinder: MultiParameterBinder = { statement, parameters, db, singleParameterBinder, resultCodeHandler in
-        for (index, parameter) in parameters.enumerated() {
-            let i = Int32(index + 1)
-            let result = singleParameterBinder(statement, i, parameter, db)
-            try resultCodeHandler(result, db)
+    func dataTypeBinder<T: Codable>(
+        statement: Statement,
+        dataType: T,
+        db: Connection,
+        singleParameterBinder: SingleParameterBinder,
+        resultCodeHandler: ResultCodeHandler
+    ) throws {
+        // 1. We could extract this... but this is for a codable object binder.
+        // We also need to have a binder for a single object, or array of objects, or dictionary of objects...
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        let data = try encoder.encode(dataType)
+        let jsonObject = try JSONSerialization.jsonObject(with: data)
+        
+        if let dictionary = jsonObject as? [String: Any?] {
+            for (index, parameter) in dictionary.enumerated() {
+                let i = Int32(index + 1)
+                let result = singleParameterBinder(statement, i, parameter.value, db)
+                try resultCodeHandler(result, db)
+            }
+        } else if let array = jsonObject as? [Any?] {
+            for (index, value) in array.enumerated() {
+                let i = Int32(index + 1)
+                let result = singleParameterBinder(statement, i, value, db)
+                try resultCodeHandler(result, db)
+            }
+        } else {
+            throw DatabaseError.invalidObject(dataType)
         }
     }
     
@@ -207,22 +258,28 @@ struct Database {
         }
     }
     
-    var queryExecutor: QueryExecutor = {
-        query,
-        parameters,
-        db,
-        singleBinder,
-        multiBinder,
-        statementPreparer,
-        columnNameExtractor,
-        rowValueExtractor,
-        rowResultHandler,
-        resultCountHandler,
-        resultCodeHandler in
-        
+    func queryExecutor<T: Codable>(
+        query: String,
+        dataType: T? = nil,
+        db: Connection,
+        singleParameterBinder: @escaping SingleParameterBinder,
+        multiParameterBinder: @escaping MultiParameterBinder<T>,
+        statementPreparer: @escaping StatementPreparer,
+        columnNameExtractor: @escaping ColumnNameExtractor,
+        rowValueExtractor: @escaping RowValueExtractor,
+        rowResultHandler: RowResultHandler<T>?,
+        resultCountHandler: ResultCountHandler?,
+        resultCodeHandler: @escaping ResultCodeHandler
+    ) throws {
         let statement = try statementPreparer(query, db, resultCodeHandler)
-        try multiBinder(statement, parameters, db, singleBinder, resultCodeHandler)
         
+        // If there are no provided parameters, we don't need to bind anything to the SQL statement
+        if let dataType {
+            try multiParameterBinder(statement, dataType, db, singleParameterBinder, resultCodeHandler)
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         let columnCount = sqlite3_column_count(statement.pointer)
         var stepResult = sqlite3_step(statement.pointer)
         
@@ -235,7 +292,9 @@ struct Database {
                     let value = rowValueExtractor(statement, index)
                     row[columnName] = value
                 }
-                rowResultHandler(row)
+                let data = try JSONSerialization.data(withJSONObject: row)
+                let decodedRow = try decoder.decode(T.self, from: data)
+                rowResultHandler(decodedRow)
             }
             stepResult = sqlite3_step(statement.pointer)
         }
@@ -248,20 +307,22 @@ struct Database {
         }
     }
     
-    func run(
+    func run<T: Codable>(
+        type: T.Type = T.self,
         location: String = .inMemory,
         query: String,
-        parameters: [Any] = [],
-        resultHandler: RowResultHandler? = nil,
+        dataType: T? = nil,
+        resultHandler: RowResultHandler<T>? = nil,
         resultCountHandler: ResultCountHandler? = nil
     ) throws {
         try run(
+            type: T.self,
             location: location,
             query: query,
-            parameters: parameters,
+            dataType: dataType,
             openHandler: self.openHandler,
             singleBinder: self.singleParameterBinder,
-            multiBinder: self.multiParameterBinder,
+            multiBinder: self.dataTypeBinder,
             statementPreparer: self.statementPreparer,
             columnNameExtractor: self.columnNameExtractor,
             rowValueExtractor: self.rowValueExtractor,
@@ -271,18 +332,19 @@ struct Database {
             resultCodeHandler: self.resultCodeHandler)
     }
     
-    func run(
+    func run<T: Codable>(
+        type: T.Type = T.self,
         location: String = .inMemory,
         query: String,
-        parameters: [Any],
+        dataType: T? = nil,
         openHandler: @escaping OpenHandler,
         singleBinder: @escaping SingleParameterBinder,
-        multiBinder: @escaping MultiParameterBinder,
+        multiBinder: @escaping MultiParameterBinder<T>,
         statementPreparer: @escaping StatementPreparer,
         columnNameExtractor: @escaping ColumnNameExtractor,
         rowValueExtractor: @escaping RowValueExtractor,
-        queryExecutor: @escaping QueryExecutor,
-        rowResultHandler: RowResultHandler? = nil,
+        queryExecutor: @escaping QueryExecutor<T>,
+        rowResultHandler: RowResultHandler<T>? = nil,
         resultCountHandler: ResultCountHandler? = nil,
         resultCodeHandler: @escaping ResultCodeHandler
     ) throws {
@@ -298,7 +360,7 @@ struct Database {
         
         try queryExecutor(
             query,
-            parameters,
+            dataType,
             db,
             singleBinder,
             multiBinder,
@@ -310,3 +372,260 @@ struct Database {
             resultCodeHandler)
     }
 }
+
+/*
+
+ func limit(_ value: Int) -> (SQLQuery) -> SQLQuery {
+     return { query in
+         (
+             sql: query.sql + " \(SQLKeyword.limit.rawValue) ?",
+             parameters: query.parameters + [value]
+         )
+     }
+ }
+
+ func insert(into table: String) -> SQLQuery {
+     (sql: "\(SQLKeyword.insert.rawValue) \(table)", parameters: [])
+ }
+
+ func values(_ values: [String: Any]) -> (SQLQuery) -> SQLQuery {
+     return { query in
+         let columns = values.keys.joined(separator: ", ")
+         let placeholders = Array(repeating: "?", count: values.count).joined(separator: ", ")
+         return (
+             sql: query.sql + " (\(columns)) \(SQLKeyword.values.rawValue) (\(placeholders))",
+             parameters: query.parameters + Array(values.values)
+         )
+     }
+ }
+ 
+ func delete(from table: String) -> SQLQuery {
+     (sql: "\(SQLKeyword.delete.rawValue) \(SQLKeyword.from.rawValue) \(table)", parameters: [])
+ }
+
+ 
+ */
+
+enum Order: String {
+    case asc = "ASC"
+    case desc = "DESC"
+}
+
+func buildWithJoin(_ join: String) -> ([Query]) -> Query {
+    return { queries in
+        let sql: String = queries.map { $0.sql }.joined(separator: join)
+        let parameters: [Any] = queries.reduce([], { $0 + $1.parameters })
+        
+        return .init(sql: sql, parameters: parameters)
+    }
+}
+
+@resultBuilder
+struct Query {
+    var sql: String
+    var parameters: [Any] = []
+    
+    static func buildBlock(_ queries: Query...) -> Query {
+        buildWithJoin("\n")(queries)
+    }
+}
+
+@resultBuilder
+struct And {
+    static func buildBlock(_ queries: Query...) -> Query {
+        buildWithJoin(" AND ")(queries)
+    }
+}
+
+@resultBuilder
+struct Or {
+    static func buildBlock(_ queries: Query...) -> Query {
+        buildWithJoin(" OR ")(queries)
+    }
+}
+
+@resultBuilder
+struct Set {
+    static func buildBlock(_ queries: Query...) -> Query {
+        buildWithJoin(", ")(queries)
+    }
+}
+
+@resultBuilder
+struct Parameters {
+    static func buildBlock(_ parameters: String...) -> String {
+        let string: String = parameters.map { $0 }.joined(separator: ", ")
+        return "(\(string))"
+    }
+}
+
+@resultBuilder
+struct Values {
+    static func buildBlock(_ values: Any...) -> Query {
+        let string: String = values.map { _ in "?" }.joined(separator: ", ")
+        return .init(sql: "(\(string))", parameters: values)
+    }
+}
+
+@resultBuilder
+struct OrderBy {
+    var column: String
+    var order: Order
+    
+    static func buildBlock(_ orderBys: OrderBy...) -> Query {
+        let columnsString = orderBys
+            .map { "\($0.column) \($0.order.rawValue)" }
+            .joined(separator: ", ")
+        return .init(sql: "ORDER BY \(columnsString)")
+    }
+}
+
+@resultBuilder
+struct Select {
+    static func buildBlock(_ columns: String...) -> Query {
+        let columnsString = columns.isEmpty ? "*" : columns.joined(separator: ", ")
+        return .init(sql: "SELECT \(columnsString)", parameters: [])
+    }
+}
+
+func insert(
+    _ table: String,
+    @Parameters _ parameters: () -> String
+) -> Query {
+    .init(sql: "INSERT INTO \(table) \(parameters())")
+}
+
+func values_(
+    @Values _ values: () -> Query
+) -> Query {
+    let valuesQuery = values()
+    return .init(sql: "VALUES \(valuesQuery.sql)", parameters: valuesQuery.parameters)
+}
+    
+func update(_ table: String) -> Query {
+    .init(sql: "UPDATE \(table)", parameters: [])
+}
+
+func where_(@Query _ condition: () -> Query) -> Query {
+    let whereClause = condition()
+    return .init(sql: "WHERE \(whereClause.sql)", parameters: whereClause.parameters)
+}
+
+func and(@And _ statements: () -> Query) -> Query {
+    statements()
+}
+
+func or(@Or _ statements: () -> Query) -> Query {
+    statements()
+}
+
+func orderBy(@OrderBy _ columns: () -> Query) -> Query {
+    columns()
+}
+
+func select(@Select _ columns: () -> Query) -> Query {
+    columns()
+}
+
+func from(_ table: String, _ alias: String? = nil) -> Query {
+    var sql = "FROM \(table)"
+    if let alias {
+        sql += " \(alias)"
+    }
+    return .init(sql: sql)
+}
+
+func set(@Set _ values: () -> Query) -> Query {
+    let values = values()
+    return .init(
+        sql: "SET \(values.sql)",
+        parameters: values.parameters)
+}
+
+func query(@Query _ query: () -> Query) -> Query {
+    var query = query()
+    query.sql += ";"
+    return query
+}
+
+extension String {
+    
+    func equal(to value: Any) -> Query {
+        .init(sql: "\(self) = ?", parameters: [value])
+    }
+    
+    func greater(than value: Any) -> Query {
+        .init(sql: "\(self) > ?", parameters: [value])
+    }
+
+    func less(than value: Any) -> Query {
+        .init(sql: "\(self) < ?", parameters: [value])
+    }
+    
+    var ascending: OrderBy {
+        .init(column: self, order: .asc)
+    }
+    
+    var descending: OrderBy {
+        .init(column: self, order: .desc)
+    }
+}
+
+/*
+
+ // MARK: - Usage Example
+
+ // SELECT query
+ let selectUsers = select("name", "age")
+     => from("users")
+     => where_(and(
+         { greaterThan("age", 30) },
+         { equal("name", "John") }
+     ))
+     => orderBy("age", direction: .descending)
+     => limit(10)
+
+ let selectResult = selectUsers(("", []))
+ print("Select Query:", selectResult.sql)
+ print("Select Parameters:", selectResult.parameters)
+
+ // INSERT query
+ let insertUser = insert(into: "users")
+     => values(["name": "Alice", "age": 28, "email": "alice@example.com"])
+
+ let insertResult = insertUser(("", []))
+ print("Insert Query:", insertResult.sql)
+ print("Insert Parameters:", insertResult.parameters)
+
+ // UPDATE query
+ let updateUser = update("users")
+     => set(["age": 29, "email": "newemail@example.com"])
+     => where_({ equal("name", "Alice") })
+
+ let updateResult = updateUser(("", []))
+ print("Update Query:", updateResult.sql)
+ print("Update Parameters:", updateResult.parameters)
+
+ // DELETE query
+ let deleteUsers = delete(from: "users")
+     => where_({ lessThan("age", 18) })
+
+ let deleteResult = deleteUsers(("", []))
+ print("Delete Query:", deleteResult.sql)
+ print("Delete Parameters:", deleteResult.parameters)
+
+ // Complex WHERE condition with OR
+ let complexSelect = select("*")
+     => from("users")
+     => where_(or(
+         { greaterThan("age", 30) },
+         and(
+             { equal("status", "VIP") },
+             { greaterThan("purchase_amount", 1000) }
+         )
+     ))
+
+ let complexResult = complexSelect(("", []))
+ print("Complex Select Query:", complexResult.sql)
+ print("Complex Select Parameters:", complexResult.parameters)
+ */
