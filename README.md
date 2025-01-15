@@ -1,0 +1,1 @@
+This is a project (currently WIP) that uses `SmallCharacterModel` to search through the Apple Music API and find the most random songs you can't imagine. This is your anti-algorithm album finder. Needs tuning, but it's fun!
