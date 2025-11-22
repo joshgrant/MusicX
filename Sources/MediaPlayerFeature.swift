@@ -21,10 +21,8 @@ struct MediaPlayerFeature {
         case onAppear
         case play
         case pause
-//        case playSong(Song)
-//        case playMedia(MusicItemID)
         case enqueueSong(Song)
-        case enqueueMedia(MusicItemID)
+        case enqueueMedia(String)
         case skip
     }
     
@@ -86,7 +84,7 @@ struct MediaPlayerFeature {
                 return .run { send in
                     let request = MusicCatalogResourceRequest<Song>(
                         matching: \.id,
-                        equalTo: id)
+                        equalTo: .init(id))
                     if let song = try await request.response().items.first {
                         await send(.enqueueSong(song))
                     } else {

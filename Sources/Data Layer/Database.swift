@@ -4,26 +4,43 @@
 import Foundation
 import SQLite3
 
-// TODO: Types are a failure!!!
-// They have broken the contract... we should remove them... maybe there's a way we can do something like:
-/*
- 
- typealias TypeConverter: (Any) -> [String: Any?]
- 
- func typeConverter(struct: Any) -> [String: Any?] {
- // TODO: Do the JSON conversion
- }
- 
- typealias ResultConverter<T: Codable>: (Any?) -> T
- 
- func resultConverter<T: Codable>(result: Any?) -> T {
- // TODO: Encode into the result...
- }
- 
- These converters might need to be passed into the function?
- They might also be provided by default by some sort of protocol conformance...
- 
- */
+protocol DatabaseCodable: Codable {}
+
+extension String: DatabaseCodable {}
+extension Int: DatabaseCodable {}
+extension Double: DatabaseCodable {}
+extension Data: DatabaseCodable {}
+
+extension Optional: DatabaseCodable where Wrapped: DatabaseCodable {}
+
+struct AnyDatabaseCodable: Codable {
+    private let value: DatabaseCodable
+    
+    init(_ value: DatabaseCodable) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let value = try? container.decode(Int.self) {
+            self.value = value
+        } else if let value = try? container.decode(Double.self) {
+            self.value = value
+        } else if let value = try? container.decode(String.self) {
+            self.value = value
+        } else if let value = try? container.decode(Data.self) {
+            self.value = value
+        } else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode DatabaseCodable")
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(value)
+    }
+}
 
 enum DatabaseError: Error {
     case failed(Int, String)
@@ -168,11 +185,11 @@ struct Database {
         _ resultCodeHandler: @escaping ResultCodeHandler
     ) throws -> Void
     
-    var openHandler: OpenHandler = { location, db in
+    static var openHandler: OpenHandler = { location, db in
         return sqlite3_open(location, &db)
     }
     
-    var resultCodeHandler: ResultCodeHandler = { resultCode, db in
+    static var resultCodeHandler: ResultCodeHandler = { resultCode, db in
         switch resultCode {
         case .ok, .done, .row:
             break
@@ -182,14 +199,14 @@ struct Database {
         }
     }
     
-    var statementPreparer: StatementPreparer = { sql, db, resultCodeHandler in
+    static var statementPreparer: StatementPreparer = { sql, db, resultCodeHandler in
         var statement: OpaquePointer?
         let result = sqlite3_prepare_v3(db, sql, -1, 0, &statement, nil)
         try resultCodeHandler(result, db)
         return Statement(pointer: statement)
     }
     
-    var singleParameterBinder: SingleParameterBinder = { statement, index, parameter, db in
+    static var singleParameterBinder: SingleParameterBinder = { statement, index, parameter, db in
         let index = Int32(index)
 
         switch parameter {
@@ -208,7 +225,7 @@ struct Database {
         }
     }
     
-    func dataTypeBinder<T: Codable>(
+    static func dataTypeBinder<T: Codable>(
         statement: Statement,
         dataType: T,
         db: Connection,
@@ -239,11 +256,11 @@ struct Database {
         }
     }
     
-    var columnNameExtractor: ColumnNameExtractor = { statement, index in
+    static var columnNameExtractor: ColumnNameExtractor = { statement, index in
         String(cString: sqlite3_column_name(statement.pointer, Int32(index)))
     }
     
-    var rowValueExtractor: RowValueExtractor = { statement, index in
+    static var rowValueExtractor: RowValueExtractor = { statement, index in
         let i = Int32(index)
         
         switch sqlite3_column_type(statement.pointer, i) {
@@ -258,7 +275,7 @@ struct Database {
         }
     }
     
-    func queryExecutor<T: Codable>(
+    static func queryExecutor<T: Codable>(
         query: String,
         dataType: T? = nil,
         db: Connection,
@@ -307,7 +324,7 @@ struct Database {
         }
     }
     
-    func run<T: Codable>(
+    static func run<T: Codable>(
         type: T.Type = T.self,
         location: String = .inMemory,
         query: String,
@@ -332,7 +349,7 @@ struct Database {
             resultCodeHandler: self.resultCodeHandler)
     }
     
-    func run<T: Codable>(
+    static func run<T: Codable>(
         type: T.Type = T.self,
         location: String = .inMemory,
         query: String,
@@ -372,39 +389,6 @@ struct Database {
             resultCodeHandler)
     }
 }
-
-/*
-
- func limit(_ value: Int) -> (SQLQuery) -> SQLQuery {
-     return { query in
-         (
-             sql: query.sql + " \(SQLKeyword.limit.rawValue) ?",
-             parameters: query.parameters + [value]
-         )
-     }
- }
-
- func insert(into table: String) -> SQLQuery {
-     (sql: "\(SQLKeyword.insert.rawValue) \(table)", parameters: [])
- }
-
- func values(_ values: [String: Any]) -> (SQLQuery) -> SQLQuery {
-     return { query in
-         let columns = values.keys.joined(separator: ", ")
-         let placeholders = Array(repeating: "?", count: values.count).joined(separator: ", ")
-         return (
-             sql: query.sql + " (\(columns)) \(SQLKeyword.values.rawValue) (\(placeholders))",
-             parameters: query.parameters + Array(values.values)
-         )
-     }
- }
- 
- func delete(from table: String) -> SQLQuery {
-     (sql: "\(SQLKeyword.delete.rawValue) \(SQLKeyword.from.rawValue) \(table)", parameters: [])
- }
-
- 
- */
 
 enum Order: String {
     case asc = "ASC"
@@ -454,8 +438,8 @@ struct Set {
 @resultBuilder
 struct Parameters {
     static func buildBlock(_ parameters: String...) -> String {
-        let string: String = parameters.map { $0 }.joined(separator: ", ")
-        return "(\(string))"
+        let string: String = parameters.map { $0 }.joined(separator: ",\n    ")
+        return "(\n    \(string)\n)"
     }
 }
 
@@ -489,7 +473,7 @@ struct Select {
 }
 
 func insert(
-    _ table: String,
+    into table: String,
     @Parameters _ parameters: () -> String
 ) -> Query {
     .init(sql: "INSERT INTO \(table) \(parameters())")
@@ -509,6 +493,13 @@ func update(_ table: String) -> Query {
 func where_(@Query _ condition: () -> Query) -> Query {
     let whereClause = condition()
     return .init(sql: "WHERE \(whereClause.sql)", parameters: whereClause.parameters)
+}
+
+func create(
+    table: String,
+    @Parameters _ parameters: () -> String
+) -> Query {
+    .init(sql: "CREATE TABLE IF NOT EXISTS \(table) \(parameters())")
 }
 
 func and(@And _ statements: () -> Query) -> Query {

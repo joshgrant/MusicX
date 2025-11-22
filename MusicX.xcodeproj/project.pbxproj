@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,18 +15,20 @@
 		3B820745BC8978E89F65845D /* MusicService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35BACA9E728DB64A72BB0A58 /* MusicService.swift */; };
 		400091AD2F9AB1F65B64DD55 /* TuistBundle+MusicX.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF50B4DF848E1E2AA08E8B93 /* TuistBundle+MusicX.swift */; };
 		478A62B97D2E570C841358C2 /* HistoryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CA000CE52C9629AA7AFE27 /* HistoryFeature.swift */; };
+		54C403F166D70CA20278FC4C /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F054716289CB4DD3677809 /* Database.swift */; };
 		679F79055C14D38195DE21AD /* SavedFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B496A0146852FE6304105D3 /* SavedFeature.swift */; };
 		8AC79B67CB81F919CE25A36D /* SongSnippetFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62D7631A65078330C4D40DF /* SongSnippetFeature.swift */; };
-		8C369A562C31F46800E6D7A9 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C369A552C31F46800E6D7A9 /* Database.swift */; };
+		9B86D9661C50F26A49DC4B96 /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F649934B2A6C2DC7DF5D9B /* Media.swift */; };
+		9BBD3D0159F8771E001F5DB0 /* DatabaseLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF27E0D70CD3ACC4DE3F0A73 /* DatabaseLocation.swift */; };
 		9C40FFDA4F776654653E0288 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4CC8B217D6B3880A89DB68 /* SettingsFeature.swift */; };
 		A24DB46071A3ED84D91317BA /* song-titles.txt in Resources */ = {isa = PBXBuildFile; fileRef = 66C29C37850A5AFE13DB2ACC /* song-titles.txt */; };
 		ACE368EDAA7B9F353A42E6D5 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 99EF17DB49E955F25F4AB9A6 /* SQLite */; };
-		AEFCE6FC7F470D458E85B5E8 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8F96F7614EA4117660DB59 /* Database.swift */; };
 		B8FE9153878902D05330C73F /* AppFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D4822D5B45A64285E9BC42 /* AppFeature.swift */; };
 		D73D4DEA9D1825DD29D84EE0 /* MyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32BD2E18DD922205C13A741 /* MyApp.swift */; };
 		DD6173E8852B63440FF70691 /* SmallCharacterModel in Frameworks */ = {isa = PBXBuildFile; productRef = 04FA6161580C594C3A016726 /* SmallCharacterModel */; };
 		E5D9DB14E9F5F77C85681D83 /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C53D455DF164F36D1FF2380 /* AppFeatureTests.swift */; };
 		E997B9A040F5A37C641B23AA /* MediaPlayerFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A658058698DF3F8F01D2EF /* MediaPlayerFeature.swift */; };
+		F08C8D93CD0293390718B688 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E2EFCB3C378364ADC58099 /* Database.swift */; };
 		F11AC7ECDA90D3D39F9CFAAF /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 07EFA69514A407756754A2D7 /* Media.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -64,10 +66,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		00E2EFCB3C378364ADC58099 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		07EFA69514A407756754A2D7 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		0B496A0146852FE6304105D3 /* SavedFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFeature.swift; sourceTree = "<group>"; };
 		0E8DF6869A448C2954301ED1 /* TuistAssets+MusicX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+MusicX.swift"; sourceTree = "<group>"; };
 		117490DB02311AC205E0D093 /* ListenFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenFeature.swift; sourceTree = "<group>"; };
+		12F054716289CB4DD3677809 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		15C5C31227AAB828CB6A3D18 /* MusicXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MusicXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		35BACA9E728DB64A72BB0A58 /* MusicService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicService.swift; sourceTree = "<group>"; };
 		453CE3A4F1C17C32B052040C /* MusicXTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "MusicXTests-Info.plist"; sourceTree = "<group>"; };
@@ -77,14 +81,14 @@
 		6C53D455DF164F36D1FF2380 /* AppFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeatureTests.swift; sourceTree = "<group>"; };
 		74CA000CE52C9629AA7AFE27 /* HistoryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryFeature.swift; sourceTree = "<group>"; };
 		785AA146D66F7D5EAD53D136 /* MusicX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MusicX.xcconfig; sourceTree = "<group>"; };
-		7E6F053DF8C5B34B18308F47 /* song-titles_3.media */ = {isa = PBXFileReference; lastKnownFileType = text; path = "song-titles_3.media"; sourceTree = "<group>"; };
-		8C369A552C31F46800E6D7A9 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		7E6F053DF8C5B34B18308F47 /* song-titles_3.media */ = {isa = PBXFileReference; path = "song-titles_3.media"; sourceTree = "<group>"; };
 		95A658058698DF3F8F01D2EF /* MediaPlayerFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerFeature.swift; sourceTree = "<group>"; };
 		9613D7B05AE9894256600CE2 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		97FE529E361E724B6188F7BF /* MusicX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MusicX.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9E8F96F7614EA4117660DB59 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		AF50B4DF848E1E2AA08E8B93 /* TuistBundle+MusicX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+MusicX.swift"; sourceTree = "<group>"; };
+		C4F649934B2A6C2DC7DF5D9B /* Media.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Media.swift; sourceTree = "<group>"; };
 		CE4CC8B217D6B3880A89DB68 /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
+		CF27E0D70CD3ACC4DE3F0A73 /* DatabaseLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseLocation.swift; sourceTree = "<group>"; };
 		E62D7631A65078330C4D40DF /* SongSnippetFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSnippetFeature.swift; sourceTree = "<group>"; };
 		F32BD2E18DD922205C13A741 /* MyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyApp.swift; sourceTree = "<group>"; };
 		F9D4822D5B45A64285E9BC42 /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
@@ -114,10 +118,11 @@
 		097F3FC76BA90F786DB4E645 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				8C369A542C31F45D00E6D7A9 /* Data Layer */,
+				29D8F4166E11ACF140F83737 /* Data Layer */,
 				F9D4822D5B45A64285E9BC42 /* AppFeature.swift */,
 				74CA000CE52C9629AA7AFE27 /* HistoryFeature.swift */,
 				117490DB02311AC205E0D093 /* ListenFeature.swift */,
+				C4F649934B2A6C2DC7DF5D9B /* Media.swift */,
 				95A658058698DF3F8F01D2EF /* MediaPlayerFeature.swift */,
 				35BACA9E728DB64A72BB0A58 /* MusicService.swift */,
 				F32BD2E18DD922205C13A741 /* MyApp.swift */,
@@ -137,6 +142,15 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
+		29D8F4166E11ACF140F83737 /* Data Layer */ = {
+			isa = PBXGroup;
+			children = (
+				00E2EFCB3C378364ADC58099 /* Database.swift */,
+				CF27E0D70CD3ACC4DE3F0A73 /* DatabaseLocation.swift */,
+			);
+			path = "Data Layer";
+			sourceTree = "<group>";
+		};
 		3FD2BA7D075877C19EE68AAF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -151,7 +165,7 @@
 			isa = PBXGroup;
 			children = (
 				6C53D455DF164F36D1FF2380 /* AppFeatureTests.swift */,
-				9E8F96F7614EA4117660DB59 /* Database.swift */,
+				12F054716289CB4DD3677809 /* Database.swift */,
 				66FB60D8778349EC37166A5C /* SettingsFeatureTests.swift */,
 			);
 			path = Tests;
@@ -172,14 +186,6 @@
 				EF14295831814100F64BA5B5 /* Project */,
 				76FD759017F8BD6354D2974C /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		8C369A542C31F45D00E6D7A9 /* Data Layer */ = {
-			isa = PBXGroup;
-			children = (
-				8C369A552C31F46800E6D7A9 /* Database.swift */,
-			);
-			path = "Data Layer";
 			sourceTree = "<group>";
 		};
 		B5D264411B0EC566369CC904 /* Derived */ = {
@@ -222,8 +228,8 @@
 			buildPhases = (
 				15D9E943A06CC55C85FC675C /* Sources */,
 				E361531C36B3E38C670DDFA8 /* Resources */,
-				E7FB892C4DFC1D7182E80CFF /* Embed Frameworks */,
 				5A2A2767C6A810357C96C1D3 /* Frameworks */,
+				E7FB892C4DFC1D7182E80CFF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -245,8 +251,8 @@
 			buildPhases = (
 				634B1AA5FAA89F232E59E686 /* Sources */,
 				B6420DCF6231893B09B4315D /* Resources */,
-				90E80735CA9CD634C560872F /* Embed Frameworks */,
 				C2BF407ECC33258A58C74A17 /* Frameworks */,
+				90E80735CA9CD634C560872F /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -254,6 +260,8 @@
 				0BAF4BC3D987E7E77B054F00 /* PBXTargetDependency */,
 			);
 			name = MusicXTests;
+			packageProductDependencies = (
+			);
 			productName = MusicXTests;
 			productReference = 15C5C31227AAB828CB6A3D18 /* MusicXTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -324,10 +332,12 @@
 				1108D47CDE37A779AFC431BB /* TuistAssets+MusicX.swift in Sources */,
 				400091AD2F9AB1F65B64DD55 /* TuistBundle+MusicX.swift in Sources */,
 				B8FE9153878902D05330C73F /* AppFeature.swift in Sources */,
+				F08C8D93CD0293390718B688 /* Database.swift in Sources */,
+				9BBD3D0159F8771E001F5DB0 /* DatabaseLocation.swift in Sources */,
 				478A62B97D2E570C841358C2 /* HistoryFeature.swift in Sources */,
 				0ACD37A60F305F9ECE4467DC /* ListenFeature.swift in Sources */,
+				9B86D9661C50F26A49DC4B96 /* Media.swift in Sources */,
 				E997B9A040F5A37C641B23AA /* MediaPlayerFeature.swift in Sources */,
-				8C369A562C31F46800E6D7A9 /* Database.swift in Sources */,
 				3B820745BC8978E89F65845D /* MusicService.swift in Sources */,
 				D73D4DEA9D1825DD29D84EE0 /* MyApp.swift in Sources */,
 				679F79055C14D38195DE21AD /* SavedFeature.swift in Sources */,
@@ -341,7 +351,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E5D9DB14E9F5F77C85681D83 /* AppFeatureTests.swift in Sources */,
-				AEFCE6FC7F470D458E85B5E8 /* Database.swift in Sources */,
+				54C403F166D70CA20278FC4C /* Database.swift in Sources */,
 				0ACFA7C3E9A44EA1C61A404B /* SettingsFeatureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -433,7 +443,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
+					"$(inherited)",
+					DEBUG,
+				);
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -447,6 +460,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -464,7 +478,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
+					"$(inherited)",
+					DEBUG,
+				);
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -535,6 +552,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -553,7 +571,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -563,6 +581,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -580,7 +599,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
+					"$(inherited)",
+					DEBUG,
+				);
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -611,7 +633,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MusicX.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MusicX";

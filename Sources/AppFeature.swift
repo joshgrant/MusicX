@@ -49,7 +49,7 @@ struct AppFeature {
         case settings(SettingsFeature.Action)
     }
     
-//    @Dependency(\.connection) var connection
+    @Dependency(\.databaseLocation) var databaseLocation
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -62,7 +62,22 @@ struct AppFeature {
                         await send(.listen(.authorized(result)))
                     },
                     .run { send in
-//                        connection.send
+                        let query = query {
+                            create(table: "media") {
+                                "id TEXT PRIMARY KEY"
+                                "song_name TEXT NOT NULL"
+                                "artist_name TEXT NOT NULL"
+                                "album_name TEXT"
+                                "play_count INTEGER DEFAULT 0"
+                                "track_duration REAL NOT NULL"
+                                "song_url TEXT"
+                            }
+                        }
+                        
+                        try Database.run(
+                            type: String.self,
+                            location: databaseLocation.location,
+                            query: query.sql)
                     }
                 ])
             case .selectedTabChanged(let tab):

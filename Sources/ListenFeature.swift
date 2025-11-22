@@ -7,49 +7,27 @@ import SmallCharacterModel
 import MusicKit
 import SwiftData
 import Combine
+import SQLite3
 
 @Reducer
 struct ListenFeature {
     
     @ObservableState
     struct State: Equatable {
-        var smallCharacterModel = SmallCharacterModel.State(source: .preTrainedBundleModel(.init(
-            name: "song-titles",
-            cohesion: 3,
-            fileExtension: "media")))
+        var smallCharacterModel = SmallCharacterModel.State(
+            source: .preTrainedBundleModel(.init(
+                name: "song-titles",
+                cohesion: 3,
+                fileExtension: "media")))
         
         var mediaPlayer = MediaPlayerFeature.State()
-        
         var buildProgress: Double?
-        
         var isLoading: Bool = true
         var currentQuery: String? = nil
-//        var temporaryMediaInformation: Media?
-        
         var currentPlaybackTime: TimeInterval?
-        
         var musicSubscription: MusicSubscription?
         
-//        @MainActor
-//        var currentMediaInformation: Media? {
-//            @Dependency(\.database) var database
-//            @Dependency(\.musicService) var musicService
-//            let currentSongId = musicService.currentSong()?.id
-//            let descriptor = FetchDescriptor<Media>(predicate: #Predicate {
-//                $0.musicId?.rawValue == currentSongId?.rawValue
-//            })
-//            
-//            do {
-//                guard let result = try database.context().fetch(descriptor).first else {
-//                    XCTFail("Failed to get a media item for the current song")
-//                    return nil
-//                }
-//                return result
-//            } catch {
-//                XCTFail(error.localizedDescription)
-//                return nil
-//            }
-//        }
+        var backupMedia: Media?
     }
     
     enum Action {
@@ -63,8 +41,8 @@ struct ListenFeature {
         
         case attemptToLoadFirstSong
         
-//        case fetchedMediaInformation(word: String, searchResults: [Media])
-//        case foundNextSong(word: String, mediaInformation: Media)
+        case fetchedMediaInformation(word: String, searchResults: [Media])
+        case foundNextSong(word: String, mediaInformation: Media)
         
         case authorized(MusicAuthorization.Status)
         case failedToAuthenticate(Error)
@@ -74,6 +52,7 @@ struct ListenFeature {
     
     @Dependency(\.openURL) var openURL
     @Dependency(\.musicService) var musicService
+    @Dependency(\.databaseLocation) var databaseLocation
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -95,15 +74,15 @@ struct ListenFeature {
                 }
             case .saveToFavoritesToggled:
                 return .run { send in
-//                    @Dependency(\.database) var database
-//                    let request = FetchDescriptor<Media>(predicate: #Predicate { input in
-//                        input.musicId?.rawValue == musicService.currentSong()?.id.rawValue
-//                    })
-//                    guard let mediaItem = try database.context().fetch(request).first else {
-//                        XCTFail("Shouldn't save to favorites if the song doesn't exist")
-//                        return
-//                    }
-//                    mediaItem.bookmarked.toggle()
+                    //                    @Dependency(\.database) var database
+                    //                    let request = FetchDescriptor<Media>(predicate: #Predicate { input in
+                    //                        input.musicId?.rawValue == musicService.currentSong()?.id.rawValue
+                    //                    })
+                    //                    guard let mediaItem = try database.context().fetch(request).first else {
+                    //                        XCTFail("Shouldn't save to favorites if the song doesn't exist")
+                    //                        return
+                    //                    }
+                    //                    mediaItem.bookmarked.toggle()
                 }
             case .refreshSong:
                 state.isLoading = true
@@ -128,38 +107,57 @@ struct ListenFeature {
                 state.currentQuery = word
                 return .run { send in
                     do {
-//                        let mediaInformation = try await musicService.search(word)
-//                        await send(.fetchedMediaInformation(word: word, searchResults: mediaInformation))
+                        let mediaInformation = try await musicService.search(word)
+                        await send(.fetchedMediaInformation(word: word, searchResults: mediaInformation))
                     } catch {
                         await send(.failedToAuthenticate(error))
                     }
                 }
             case .smallCharacterModel:
                 return .none
-//            case .fetchedMediaInformation(let word, let mediaInformation):
-//                if let element = mediaInformation.randomElement() {
-//                    state.temporaryMediaInformation = element
-//                    return .send(.smallCharacterModel(.wordGenerator(.generate(
-//                        prefix: state.currentQuery ?? "",
-//                        length: (state.currentQuery?.count ?? 0) + 1))))
-//                } else {
-//                    // TODO: Rewrite the data layer
-////                    guard let foundSong = state.temporaryMediaInformation else {
-////                        fatalError("There was no temporary media information")
-////                    }
-////                    state.isLoading = false
-////                    @Dependency(\.database) var database
-////                    database.context().insert(foundSong)
-////                    return .send(.foundNextSong(word: word, mediaInformation: foundSong))
-//                    return .none
-//                }
-//            case .foundNextSong(let word, let media):
-//                print("FOUND SONG: \(word)")
-//                if let id = media.musicId {
-//                    return .send(.mediaPlayer(.enqueueMedia(id)))
-//                } else {
-//                    fatalError()
-//                }
+            case .fetchedMediaInformation(let word, let mediaInformation):
+                if let element = mediaInformation.randomElement() {
+                    state.backupMedia = element
+                    return .send(.smallCharacterModel(.wordGenerator(.generate(
+                        prefix: state.currentQuery ?? "",
+                        length: (state.currentQuery?.count ?? 0) + 1))))
+                } else {
+                    guard let foundSong = state.backupMedia else {
+                        fatalError("There was no temporary media information. Your API key probably is incorrect.")
+                    }
+                    state.isLoading = false
+                    let q = query {
+                        insert(into: "media") {
+                            "id"
+                            "song_name"
+                            "artist_name"
+                            "album_name"
+                            "play_count"
+                            "track_duration"
+                            "song_url"
+                        }
+                        values_ {
+                            foundSong.id
+                            foundSong.songName
+                            foundSong.artistName
+                            foundSong.albumName ?? ""
+                            foundSong.playCount
+                            foundSong.trackDuration
+                            foundSong.songUrl?.absoluteString ?? ""
+                        }
+                    }
+                    
+                    return .run { send in
+                        try Database.run(
+                            type: Media.self,
+                            location: .onDisk("/Users/me/Desktop/test.sql"),
+                            query: q.sql)
+                        await send(.foundNextSong(word: word, mediaInformation: foundSong))
+                    }
+                }
+            case .foundNextSong(let word, let media):
+                print("FOUND SONG: \(word)")
+                return .send(.mediaPlayer(.enqueueMedia(media.id)))
             case .failedToAuthenticate(let error):
                 return .run { send in
                     let result = await MusicAuthorization.request()
@@ -231,9 +229,9 @@ struct ListenView: View {
                     ProgressView()
                         .controlSize(.large)
                 }
-//                else if let mediaInformation = store.currentMediaInformation {
-//                    artworkView(media: mediaInformation)
-//                }
+                //                else if let mediaInformation = store.currentMediaInformation {
+                //                    artworkView(media: mediaInformation)
+                //                }
             }
             .frame(maxWidth: .infinity)
             .padding(16)
@@ -246,13 +244,13 @@ struct ListenView: View {
                     Button {
                         store.send(.saveToFavoritesToggled)
                     } label: {
-//                        if store.currentMediaInformation?.bookmarked ?? false {
-//                            Image(systemName: "bookmark.fill")
-//                        } else {
-//                            Image(systemName: "bookmark")
-//                        }
+                        //                        if store.currentMediaInformation?.bookmarked ?? false {
+                        //                            Image(systemName: "bookmark.fill")
+                        //                        } else {
+                        //                            Image(systemName: "bookmark")
+                        //                        }
                     }
-//                    .disabled(store.state.currentMediaInformation == nil)
+                    //                    .disabled(store.state.currentMediaInformation == nil)
                 }
                 
                 ToolbarItem {
@@ -261,7 +259,7 @@ struct ListenView: View {
                     } label: {
                         Image(systemName: "arrow.up.right.square")
                     }
-//                    .disabled(store.state.currentMediaInformation == nil)
+                    //                    .disabled(store.state.currentMediaInformation == nil)
                 }
             }
             .onChange(of: playbackStatus) { oldValue, newValue in
@@ -280,96 +278,96 @@ struct ListenView: View {
             .frame(maxWidth: 512)
     }
     
-//    @ViewBuilder
-//    private func artworkView(media: Media) -> some View {
-//        AsyncImage(url: media.albumArtURL) { image in
-//            image
-//                .resizable()
-//                .clipShape(RoundedRectangle(cornerRadius: 16))
-//                .aspectRatio(1, contentMode: .fit)
-//        } placeholder: {
-//            albumArtPlaceholderView
-//        }
-//        .frame(maxWidth: 512, maxHeight: 512)
-//    }
+    //    @ViewBuilder
+    //    private func artworkView(media: Media) -> some View {
+    //        AsyncImage(url: media.albumArtURL) { image in
+    //            image
+    //                .resizable()
+    //                .clipShape(RoundedRectangle(cornerRadius: 16))
+    //                .aspectRatio(1, contentMode: .fit)
+    //        } placeholder: {
+    //            albumArtPlaceholderView
+    //        }
+    //        .frame(maxWidth: 512, maxHeight: 512)
+    //    }
     
     private var bottomView: some View {
         VStack {
-//            if let media = store.currentMediaInformation {
-//                VStack(spacing: 4) {
-//                    if let artistName = media.artistName {
-//                        Text(artistName)
-//                    }
-//                    
-//                    if let albumName = media.albumName {
-//                        Text(albumName)
-//                    }
-//                    
-//                    if let songName = media.songName {
-//                        Text(songName)
-//                    }
-//                    
-//                    if let releaseDate = media.releaseDate {
-//                        Text(releaseDate.formatted(date: .numeric, time: .omitted))
-//                    }
-//                    
-//                    if let genres = media.genreNames {
-//                        ScrollView(.horizontal) {
-//                            HStack {
-//                                ForEach(genres, id: \.self) {
-//                                    Text($0)
-//                                }
-//                            }
-//                        }
-//                        .scrollIndicators(.hidden)
-//                    }
-//                }
-//                
-//                if let duration = media.duration, let time = store.currentPlaybackTime {
-//                    ProgressView(value: time, total: duration)
-//                        .animation(.easeInOut(duration: duration - time), value: time)
-//                }
-//            }
+            //            if let media = store.currentMediaInformation {
+            //                VStack(spacing: 4) {
+            //                    if let artistName = media.artistName {
+            //                        Text(artistName)
+            //                    }
+            //
+            //                    if let albumName = media.albumName {
+            //                        Text(albumName)
+            //                    }
+            //
+            //                    if let songName = media.songName {
+            //                        Text(songName)
+            //                    }
+            //
+            //                    if let releaseDate = media.releaseDate {
+            //                        Text(releaseDate.formatted(date: .numeric, time: .omitted))
+            //                    }
+            //
+            //                    if let genres = media.genreNames {
+            //                        ScrollView(.horizontal) {
+            //                            HStack {
+            //                                ForEach(genres, id: \.self) {
+            //                                    Text($0)
+            //                                }
+            //                            }
+            //                        }
+            //                        .scrollIndicators(.hidden)
+            //                    }
+            //                }
+            //
+            //                if let duration = media.duration, let time = store.currentPlaybackTime {
+            //                    ProgressView(value: time, total: duration)
+            //                        .animation(.easeInOut(duration: duration - time), value: time)
+            //                }
+            //            }
             
-//            HStack(spacing: 40) {
-//                // This is just for layout purposes
-//                Button {
-//                } label: {
-//                    Image(systemName: "forward.fill")
-//                        .font(.largeTitle)
-//                }
-//                .buttonStyle(.plain)
-//                .opacity(0)
-//                
-//                // TODO: Fix me?
-//                Button {
-//                    if !store.mediaPlayer.isPlaying,
-//                       let media = store.currentMediaInformation,
-//                       let id = media.musicId {
-////                        store.send(.mediaPlayer(.enqueueMedia(id)))
-//                        store.send(.mediaPlayer(.play))
-//                    } else {
-//                        store.send(.mediaPlayer(.pause))
-//                    }
-//                } label: {
-//                    if store.mediaPlayer.isPlaying {
-//                        Image(systemName: "pause.fill")
-//                            .font(.largeTitle)
-//                    } else {
-//                        Image(systemName: "play.fill")
-//                            .font(.largeTitle)
-//                    }
-//                }
-//                .buttonStyle(.plain)
-//                
-//                Button {
-//                    store.send(.refreshSong)
-//                } label: {
-//                    Image(systemName: "forward.fill")
-//                        .font(.largeTitle)
-//                }
-//                .buttonStyle(.plain)
-//            }
+            //            HStack(spacing: 40) {
+            //                // This is just for layout purposes
+            //                Button {
+            //                } label: {
+            //                    Image(systemName: "forward.fill")
+            //                        .font(.largeTitle)
+            //                }
+            //                .buttonStyle(.plain)
+            //                .opacity(0)
+            //
+            //                // TODO: Fix me?
+            //                Button {
+            //                    if !store.mediaPlayer.isPlaying,
+            //                       let media = store.currentMediaInformation,
+            //                       let id = media.musicId {
+            ////                        store.send(.mediaPlayer(.enqueueMedia(id)))
+            //                        store.send(.mediaPlayer(.play))
+            //                    } else {
+            //                        store.send(.mediaPlayer(.pause))
+            //                    }
+            //                } label: {
+            //                    if store.mediaPlayer.isPlaying {
+            //                        Image(systemName: "pause.fill")
+            //                            .font(.largeTitle)
+            //                    } else {
+            //                        Image(systemName: "play.fill")
+            //                            .font(.largeTitle)
+            //                    }
+            //                }
+            //                .buttonStyle(.plain)
+            //
+            //                Button {
+            //                    store.send(.refreshSong)
+            //                } label: {
+            //                    Image(systemName: "forward.fill")
+            //                        .font(.largeTitle)
+            //                }
+            //                .buttonStyle(.plain)
+            //            }
         }
         .frame(maxWidth: .infinity)
         .padding(16)

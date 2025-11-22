@@ -18,8 +18,6 @@ final class DatabaseTests: XCTestCase {
     }
     
     func test_createTable() throws {
-        let database = Database()
-        
         let query =
             """
             CREATE TABLE IF NOT EXISTS song (
@@ -32,7 +30,7 @@ final class DatabaseTests: XCTestCase {
             );
             """
         
-        try database.run(
+        try Database.run(
             type: Song.self,
             location: .onDisk("/Users/me/Desktop/test.db"),
             query: query,
@@ -41,15 +39,39 @@ final class DatabaseTests: XCTestCase {
             })
     }
     
+    func test_createTable_query() throws {
+        let query = query {
+            create(table: "song") {
+                "id TEXT PRIMARY KEY"
+                "song_name TEXT NOT NULL"
+                "artist_name TEXT NOT NULL"
+                "play_count INTEGER DEFAULT 0"
+                "track_duration REAL NOT NULL"
+                "song_url TEXT"
+            }
+        }
+        
+        XCTAssertEqual(query.sql,
+        """
+        CREATE TABLE IF NOT EXISTS song (
+            id TEXT PRIMARY KEY,
+            song_name TEXT NOT NULL,
+            artist_name TEXT NOT NULL,
+            play_count INTEGER DEFAULT 0,
+            track_duration REAL NOT NULL,
+            song_url TEXT
+        );
+        """)
+    }
+    
     func test_insertRow() throws {
-        let database = Database()
         let query =
         """
         INSERT INTO song (id, song_name, artist_name, play_count, track_duration, song_url)
         VALUES ( ?, ?, ?, ?, ?, ? );
         """
         
-        try database.run(
+        try Database.run(
             location: .onDisk("/Users/me/Desktop/test.db"),
             query: query,
             dataType: Song(
@@ -68,7 +90,6 @@ final class DatabaseTests: XCTestCase {
     }
     
     func test_query() throws {
-        let database = Database()
         let query =
         """
         SELECT *
@@ -76,11 +97,12 @@ final class DatabaseTests: XCTestCase {
         WHERE artist_name = ?;
         """
         
-        try database.run(
+        try Database.run(
+            type: [String: AnyDatabaseCodable].self,
             location: .onDisk("/Users/me/Desktop/test.db"),
             query: query,
-            dataType: ["John Lennon"],
             resultHandler: { row in
+                print(row)
             })
     }
     
@@ -136,7 +158,7 @@ final class DatabaseTests: XCTestCase {
     
     func test_insert() {
         let query = query {
-            insert("songs") {
+            insert(into: "songs") {
                 "artist_name"
                 "play_count"
             }
@@ -148,7 +170,10 @@ final class DatabaseTests: XCTestCase {
         
         XCTAssertEqual(query.sql,
         """
-        INSERT INTO songs (artist_name, play_count)
+        INSERT INTO songs (
+            artist_name,
+            play_count
+        )
         VALUES (?, ?);
         """)
         
