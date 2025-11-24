@@ -14,7 +14,6 @@ struct MediaPlayerFeature {
     @ObservableState
     struct State: Equatable {
         var isPlaying: Bool = false
-        var autoPlay: Bool = false
     }
     
     enum Action {

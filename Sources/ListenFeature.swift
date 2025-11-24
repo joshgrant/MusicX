@@ -33,6 +33,9 @@ struct ListenFeature {
     }
     
     enum Action {
+        case onAppear
+        case timerTick
+        
         case smallCharacterModel(SmallCharacterModel.Action)
         case mediaPlayer(MediaPlayerFeature.Action)
         
@@ -49,15 +52,44 @@ struct ListenFeature {
         case authorized(MusicAuthorization.Status)
         case failedToAuthenticate(Error)
         
-        case playbackStatusChanged(MusicPlayer.PlaybackStatus, TimeInterval)
+        case playbackStatusChanged(MusicPlayer.PlaybackStatus)
+    }
+    
+    enum CancelID {
+        case updateTimer
     }
     
     @Dependency(\.openURL) var openURL
     @Dependency(\.musicService) var musicService
+    @Dependency(\.continuousClock) var clock
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                return .run { send in
+                    for await _ in self.clock.timer(interval: .seconds(1)) {
+                        await send(.timerTick)
+                    }
+                }
+                .cancellable(id: CancelID.updateTimer)
+            case .timerTick:
+                state.currentPlaybackTime = ApplicationMusicPlayer.shared.playbackTime
+                
+                guard
+                    let duration = state.currentMediaInformation?.duration,
+                    let playbackTime = state.currentPlaybackTime
+                else {
+                    return .none
+                }
+                
+                print("Updated at: \(playbackTime) - song duration: \(duration)")
+                
+                if Int(playbackTime) >= Int(duration) {
+                    return .send(.refreshSong)
+                } else {
+                    return .none
+                }
             case .authorized(let status):
                 switch status {
                 case .authorized:
@@ -74,6 +106,19 @@ struct ListenFeature {
                     return .none
                 }
             case .saveToFavoritesToggled:
+                guard let mediaId = state.currentMediaInformation?.musicId else { return .none }
+                @Dependency(\.database) var database
+                let context = database.context()
+                
+                // Fetch the persistent object and modify it
+                if let persistentMedia = try? context.fetch(
+                    FetchDescriptor<Media>(predicate: #Predicate { $0.musicId == mediaId })
+                ).first {
+                    persistentMedia.bookmarked.toggle()
+                    try? context.save()
+                }
+                
+                // Update the local state to reflect the change
                 state.currentMediaInformation?.bookmarked.toggle()
                 return .none
             case .refreshSong:
@@ -147,8 +192,7 @@ struct ListenFeature {
                 }
                 
                 return .send(.refreshSong)
-            case .playbackStatusChanged(let status, let time):
-                state.currentPlaybackTime = time
+            case .playbackStatusChanged(let status):
                 switch status {
                 case .stopped:
                     print("STOPPED")
@@ -185,10 +229,6 @@ struct ListenView: View {
     
     @Bindable var store: StoreOf<ListenFeature>
     @ObservedObject var state = ApplicationMusicPlayer.shared.state
-    
-    var playbackStatus: ApplicationMusicPlayer.PlaybackStatus {
-        state.playbackStatus
-    }
     
     var body: some View {
         NavigationStack {
@@ -233,12 +273,15 @@ struct ListenView: View {
                     .disabled(store.state.currentMediaInformation == nil)
                 }
             }
-            .refreshable {
-                store.send(.refreshSong)
-            }
-            .onChange(of: playbackStatus) { oldValue, newValue in
-                store.send(.playbackStatusChanged(newValue, ApplicationMusicPlayer.shared.playbackTime))
-            }
+        }
+        .refreshable {
+            store.send(.refreshSong)
+        }
+        .onChange(of: state.playbackStatus) { oldValue, newValue in
+            store.send(.playbackStatusChanged(newValue))
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
     }
     
