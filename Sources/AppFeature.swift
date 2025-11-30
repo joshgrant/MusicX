@@ -62,6 +62,7 @@ struct AppFeature {
                         await send(.listen(.authorized(result)))
                     }
                 ])
+//                return .none
             case .selectedTabChanged(let tab):
                 state.selectedTab = tab
                 return .none

@@ -86,6 +86,7 @@ struct ListenFeature {
                 print("Updated at: \(playbackTime) - song duration: \(duration)")
                 
                 if Int(playbackTime) >= Int(duration) {
+                    // TODO: Check the auto-play state
                     return .send(.refreshSong)
                 } else {
                     return .none
@@ -175,7 +176,7 @@ struct ListenFeature {
                 } else {
                     fatalError()
                 }
-            case .failedToAuthenticate(let error):
+            case .failedToAuthenticate:
                 return .run { send in
                     let result = await MusicAuthorization.request()
                     await send(.authorized(result))
@@ -230,6 +231,8 @@ struct ListenView: View {
     @Bindable var store: StoreOf<ListenFeature>
     @ObservedObject var state = ApplicationMusicPlayer.shared.state
     
+    @Environment(\.openURL) var openURL
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
@@ -266,7 +269,15 @@ struct ListenView: View {
                 
                 ToolbarItem {
                     Button {
+                        // There is a bug with TCA where the openURL dependency
+                        // doesn't work on macOS
+                        #if os(macOS)
+                        if let url = store.state.currentMediaInformation?.storeURL {
+                            openURL(url)
+                        }
+                        #else
                         store.send(.openSongURL)
+                        #endif
                     } label: {
                         Image(systemName: "arrow.up.right.square")
                     }
