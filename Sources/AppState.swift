@@ -3,6 +3,7 @@
 
 import Foundation
 import MusicKit
+import SmallCharacterModel
 
 protocol PlayerProtocol {
     func clearQueue()
@@ -17,16 +18,17 @@ protocol PlayerProtocol {
     var isAuthorized: Bool { get }
     var isPlaying: Bool { get }
     var hasItemInQueue: Bool { get }
+    var currentSong: AppState.Song? { get }
 }
 
 extension ApplicationMusicPlayer: PlayerProtocol {
-
+    
     func prepareToPlayIfNecessary() async throws {
         if !isPreparedToPlay {
             try await prepareToPlay()
         }
     }
-
+    
     func clearQueue() {
         queue = []
     }
@@ -55,6 +57,15 @@ extension ApplicationMusicPlayer: PlayerProtocol {
     
     var hasItemInQueue: Bool {
         !queue.entries.isEmpty
+    }
+    
+    var currentSong: AppState.Song? {
+        switch queue.currentEntry?.item {
+        case .song(let song):
+            return .init(song: song)
+        default:
+            return nil
+        }
     }
 }
 
@@ -92,21 +103,28 @@ class MockMusicPlayer: PlayerProtocol {
     func requestAuthorization() async -> Bool {
         return true
     }
-     
+    
     var isAuthorized: Bool {
         return true
     }
+    
+    var currentSong: AppState.Song? {
+        // TODO: Return a fake song
+        nil
+    }
 }
 
-import SmallCharacterModel
+var appState = AppState(
+    model: CharacterModelState(source: .preTrainedBundleModel(.init(
+        name: "song-titles",
+        cohesion: 3,
+        fileExtension: "media"))),
+    settings: .init(searchType: .song, randomMode: .probable, autoPlay: true),
+    history: [],
+    bookmarks: [],
+    isSearchingForSong: false)
 
-// TODO: This is global for now, but let's move it into AppState
-var smallCharacterModel = CharacterModelState(source: .preTrainedBundleModel(.init(
-    name: "song-titles",
-    cohesion: 3,
-    fileExtension: "media")))
-
-struct AppState {
+class AppState {
     
     enum SearchType: Codable {
         case song
@@ -125,18 +143,33 @@ struct AppState {
         var autoPlay: Bool
     }
     
+    var model: CharacterModelState
+    
     // Persisted to disk
     var settings: Settings
     var history: [AppState.Song]
     var bookmarks: [AppState.Song]
     
     // Stored in memory
-    var currentSong: AppState.Song
     var isSearchingForSong: Bool
     
     // Computed
     var canSkipBackward: Bool {
         !history.isEmpty
+    }
+    
+    init(
+        model: CharacterModelState,
+        settings: Settings,
+        history: [AppState.Song],
+        bookmarks: [AppState.Song],
+        isSearchingForSong: Bool
+    ) {
+        self.model = model
+        self.settings = settings
+        self.history = history
+        self.bookmarks = bookmarks
+        self.isSearchingForSong = isSearchingForSong
     }
 }
 
@@ -181,149 +214,152 @@ extension AppState.Song {
     }
 }
 
-// To be called when the program starts
-func configure(
-    player: any PlayerProtocol
-) {
-    if !player.isAuthorized {
+extension AppState {
+    
+    // To be called when the program starts
+    static func configure(
+        player: any PlayerProtocol
+    ) {
+        if !player.isAuthorized {
+            
+        }
+        //    let result = await MusicAuthorization.request()
+        //
+        //    switch MusicAuthorization.currentStatus {
+        //    case .authorized
+        //    }
+    }
+    
+    static func set(
+        searchType: AppState.SearchType,
+        on appState: inout AppState
+    ) {
+        appState.settings.searchType = searchType
+    }
+    
+    static func set(
+        randomMode: AppState.RandomMode,
+        on appState: inout AppState
+    ) {
+        appState.settings.randomMode = randomMode
+    }
+    
+    static func togglePlaying(
+        musicPlayer: any PlayerProtocol,
+        on appState: inout AppState
+    ) async throws {
+        if musicPlayer.isPlaying {
+            try await set(isPlaying: false, musicPlayer: musicPlayer, on: &appState)
+        } else {
+            try await set(isPlaying: true, musicPlayer: musicPlayer, on: &appState)
+        }
+    }
+    
+    static func set(
+        isPlaying: Bool,
+        musicPlayer: any PlayerProtocol,
+        on appState: inout AppState
+    ) async throws {
+        if isPlaying {
+            try await musicPlayer.play()
+        } else {
+            musicPlayer.pause()
+        }
+    }
+    
+    static func toggleBookmarked(
+        song: AppState.Song,
+        on appState: inout AppState
+    ) {
+        if appState.bookmarks.contains(where: { $0.id == song.id }) {
+            set(isBookmarked: false, song: song, on: &appState)
+        } else {
+            set(isBookmarked: true, song: song, on: &appState)
+        }
+    }
+    
+    static func set(
+        isBookmarked: Bool,
+        song: AppState.Song,
+        on appState: inout AppState
+    ) {
+        if isBookmarked {
+            appState.bookmarks.removeAll(where: { $0.id == song.id })
+        } else if appState.bookmarks.contains(where: { $0.id == song.id }) {
+            return
+        } else {
+            appState.bookmarks.append(song)
+        }
+    }
+    
+    static func addToHistory(
+        song: AppState.Song,
+        on appState: inout AppState
+    ) {
+        appState.history.append(song)
+    }
+    
+    static func removeFromHistory(
+        song: AppState.Song,
+        on appState: inout AppState
+    ) {
+        guard let index = appState.history.firstIndex(where: { $0.id == song.id }) else {
+            return
+        }
         
-    }
-//    let result = await MusicAuthorization.request()
-//    
-//    switch MusicAuthorization.currentStatus {
-//    case .authorized
-//    }
-}
-
-func set(
-    searchType: AppState.SearchType,
-    on appState: inout AppState
-) {
-    appState.settings.searchType = searchType
-}
-
-func set(
-    randomMode: AppState.RandomMode,
-    on appState: inout AppState
-) {
-    appState.settings.randomMode = randomMode
-}
-
-func togglePlaying(
-    musicPlayer: any PlayerProtocol,
-    on appState: inout AppState
-) async throws {
-    if musicPlayer.isPlaying {
-        try await set(isPlaying: false, musicPlayer: musicPlayer, on: &appState)
-    } else {
-        try await set(isPlaying: true, musicPlayer: musicPlayer, on: &appState)
-    }
-}
-
-func set(
-    isPlaying: Bool,
-    musicPlayer: any PlayerProtocol,
-    on appState: inout AppState
-) async throws {
-    if isPlaying {
-        try await musicPlayer.play()
-    } else {
-        musicPlayer.pause()
-    }
-}
-
-func toggleBookmarked(
-    song: AppState.Song,
-    on appState: inout AppState
-) {
-    if appState.bookmarks.contains(where: { $0.id == song.id }) {
-        set(isBookmarked: false, song: song, on: &appState)
-    } else {
-        set(isBookmarked: true, song: song, on: &appState)
-    }
-}
-
-func set(
-    isBookmarked: Bool,
-    song: AppState.Song,
-    on appState: inout AppState
-) {
-    if isBookmarked {
-        appState.bookmarks.removeAll(where: { $0.id == song.id })
-    } else if appState.bookmarks.contains(where: { $0.id == song.id }) {
-        return
-    } else {
-        appState.bookmarks.append(song)
-    }
-}
-
-func addToHistory(
-    song: AppState.Song,
-    on appState: inout AppState
-) {
-    appState.history.append(song)
-}
-
-func removeFromHistory(
-    song: AppState.Song,
-    on appState: inout AppState
-) {
-    guard let index = appState.history.firstIndex(where: { $0.id == song.id }) else {
-        return
+        appState.history.remove(at: index)
     }
     
-    appState.history.remove(at: index)
-}
-
-func skipForward(
-    musicPlayer: any PlayerProtocol,
-    appState: inout AppState
-) async throws {
-    guard musicPlayer.hasItemInQueue else {
-        await findAndEnqueueSong(appState: &appState)
-        try await set(isPlaying: true, musicPlayer: musicPlayer, on: &appState)
-        return
+    static func skipForward(
+        musicPlayer: any PlayerProtocol,
+        appState: inout AppState
+    ) async throws {
+        guard musicPlayer.hasItemInQueue else {
+            await findAndEnqueueSong(appState: &appState)
+            try await set(isPlaying: true, musicPlayer: musicPlayer, on: &appState)
+            return
+        }
+        
+        try await musicPlayer.skipToNextEntry()
     }
     
-    try await musicPlayer.skipToNextEntry()
-}
-
-func skipBackward(
-    musicPlayer: any PlayerProtocol,
-    appState: inout AppState
-) async throws {
-    guard appState.canSkipBackward else {
-        return
+    static func skipBackward(
+        musicPlayer: any PlayerProtocol,
+        appState: inout AppState
+    ) async throws {
+        guard appState.canSkipBackward else {
+            return
+        }
+        
+        if let mostRecent = appState.history.last {
+            try await play(song: mostRecent, musicPlayer: musicPlayer, appState: &appState)
+        }
     }
     
-    if let mostRecent = appState.history.last {
-        try await play(song: mostRecent, musicPlayer: musicPlayer, appState: &appState)
+    static func play(
+        song: AppState.Song,
+        musicPlayer: any PlayerProtocol,
+        appState: inout AppState
+    ) async throws {
+        try await musicPlayer.enqueue(song: song)
+        try await musicPlayer.skipToNextEntry()
     }
-}
-
-func play(
-    song: AppState.Song,
-    musicPlayer: any PlayerProtocol,
-    appState: inout AppState
-) async throws {
-    try await musicPlayer.enqueue(song: song)
-    try await musicPlayer.skipToNextEntry()
-}
-
-func findAndEnqueueSong(
-    appState: inout AppState
-) async {
-    // 1. Use the character model to come up with a word
-    // 2. Search.
-    // 3. Determine the results
-    // 4. Once we've narrowed down to one, get that song info
-    // 5. Add it to the queue
-}
-
-func enqueueSong(
-    song: AppState.Song,
-    mediaPlayer: any PlayerProtocol,
-    appState: inout AppState
-) async throws {
-    try await mediaPlayer.enqueue(song: song)
+    
+    static func findAndEnqueueSong(
+        appState: inout AppState
+    ) async {
+        // 1. Use the character model to come up with a word
+        // 2. Search.
+        // 3. Determine the results
+        // 4. Once we've narrowed down to one, get that song info
+        // 5. Add it to the queue
+    }
+    
+    static func enqueueSong(
+        song: AppState.Song,
+        mediaPlayer: any PlayerProtocol,
+        appState: inout AppState
+    ) async throws {
+        try await mediaPlayer.enqueue(song: song)
+    }
 }

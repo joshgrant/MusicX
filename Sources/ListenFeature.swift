@@ -138,7 +138,7 @@ struct ListenFeature {
                 state.isLoading = true
                 // Start with 2 just to reduce API calls
                 do {
-                    let word = try SCMFunctions.generate(prefix: "", length: 5, model: smallCharacterModel.model!)
+                    let word = try SCMFunctions.generate(prefix: "", length: 5, model: appState.model.model!)
                     return .send(.newWord(word))
                 } catch {
                     print("REFRESH ERROR: \(error)")
@@ -166,7 +166,7 @@ struct ListenFeature {
                         let word = try SCMFunctions.generate(
                             prefix: state.currentQuery ?? "",
                             length: (state.currentQuery?.count ?? 0) + 1,
-                            model: smallCharacterModel.model!)
+                            model: appState.model.model!)
                         return .send(.newWord(word))
                     } catch {
                         print("REFRESH ERROR: \(error)")

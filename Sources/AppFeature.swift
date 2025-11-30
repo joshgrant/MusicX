@@ -58,7 +58,7 @@ struct AppFeature {
                 return .merge([
                     .run { send in
                         do {
-                            try SCMFunctions.load(state: &smallCharacterModel)
+                            try SCMFunctions.load(state: &appState.model)
                         } catch {
                             await send(.listen(.modelLoadingFailed(error)))
                         }
