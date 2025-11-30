@@ -56,13 +56,18 @@ struct AppFeature {
             switch action {
             case .onAppear:
                 return .merge([
-                    .send(.listen(.smallCharacterModel(.load))),
+                    .run { send in
+                        do {
+                            try SCMFunctions.load(state: &smallCharacterModel)
+                        } catch {
+                            await send(.listen(.modelLoadingFailed(error)))
+                        }
+                    },
                     .run { send in
                         let result = await MusicAuthorization.request()
                         await send(.listen(.authorized(result)))
                     }
                 ])
-//                return .none
             case .selectedTabChanged(let tab):
                 state.selectedTab = tab
                 return .none

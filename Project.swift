@@ -5,7 +5,7 @@ let project = Project(
     organizationName: "BCE Labs",
     packages: [
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .branch("main")),
-        .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", .branch("main"))
+        .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", from: "3.0.3")
     ],
     targets: [
         .target(

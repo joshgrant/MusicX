@@ -98,6 +98,14 @@ class MockMusicPlayer: PlayerProtocol {
     }
 }
 
+import SmallCharacterModel
+
+// TODO: This is global for now, but let's move it into AppState
+var smallCharacterModel = CharacterModelState(source: .preTrainedBundleModel(.init(
+    name: "song-titles",
+    cohesion: 3,
+    fileExtension: "media")))
+
 struct AppState {
     
     enum SearchType: Codable {

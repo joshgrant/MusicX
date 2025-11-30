@@ -13,11 +13,6 @@ struct ListenFeature {
     
     @ObservableState
     struct State: Equatable {
-        var smallCharacterModel = SmallCharacterModel.State(source: .preTrainedBundleModel(.init(
-            name: "song-titles",
-            cohesion: 3,
-            fileExtension: "media")))
-        
         var mediaPlayer = MediaPlayerFeature.State()
         
         var buildProgress: Double?
@@ -36,7 +31,6 @@ struct ListenFeature {
         case onAppear
         case timerTick
         
-        case smallCharacterModel(SmallCharacterModel.Action)
         case mediaPlayer(MediaPlayerFeature.Action)
         
         case openSongURL
@@ -53,6 +47,14 @@ struct ListenFeature {
         case failedToAuthenticate(Error)
         
         case playbackStatusChanged(MusicPlayer.PlaybackStatus)
+        
+        case newWord(String)
+        
+        // Model loading
+        case modelLoadingFailed(Error)
+        case progress(Double)
+        case saved
+        case loaded
     }
     
     enum CancelID {
@@ -122,26 +124,7 @@ struct ListenFeature {
                 // Update the local state to reflect the change
                 state.currentMediaInformation?.bookmarked.toggle()
                 return .none
-            case .refreshSong:
-                state.isLoading = true
-                // Start with 2 just to reduce API calls
-                return .send(.smallCharacterModel(.wordGenerator(.generate(prefix: "", length: 5))))
-            case .smallCharacterModel(.modelLoader(.delegate(.modelLoadingFailed(let error)))):
-                print(error)
-                guard state.buildProgress == nil else {
-                    return .none
-                }
-                fatalError(error.localizedDescription)
-            case .smallCharacterModel(.modelBuilder(.delegate(.progress(let progress)))):
-                state.buildProgress = progress
-                return .none
-            case .smallCharacterModel(.modelBuilder(.delegate(.saved))):
-                state.buildProgress = nil
-                return .send(.attemptToLoadFirstSong)
-            case .smallCharacterModel(.modelLoader(.delegate(.loaded))):
-                state.buildProgress = nil
-                return .send(.attemptToLoadFirstSong)
-            case .smallCharacterModel(.wordGenerator(.delegate(.newWord(let word)))):
+            case .newWord(let word):
                 state.currentQuery = word
                 return .run { send in
                     do {
@@ -151,14 +134,44 @@ struct ListenFeature {
                         await send(.failedToAuthenticate(error))
                     }
                 }
-            case .smallCharacterModel:
+            case .refreshSong:
+                state.isLoading = true
+                // Start with 2 just to reduce API calls
+                do {
+                    let word = try SCMFunctions.generate(prefix: "", length: 5, model: smallCharacterModel.model!)
+                    return .send(.newWord(word))
+                } catch {
+                    print("REFRESH ERROR: \(error)")
+                    return .none
+                }
+            case .modelLoadingFailed(let error):
+                print(error)
+                guard state.buildProgress == nil else {
+                    return .none
+                }
+                fatalError(error.localizedDescription)
+            case .progress(let progress):
+                state.buildProgress = progress
                 return .none
+            case .saved:
+                state.buildProgress = nil
+                return .send(.attemptToLoadFirstSong)
+            case .loaded:
+                state.buildProgress = nil
+                return .send(.attemptToLoadFirstSong)
             case .fetchedMediaInformation(let word, let mediaInformation):
                 if let element = mediaInformation.randomElement() {
                     state.temporaryMediaInformation = element
-                    return .send(.smallCharacterModel(.wordGenerator(.generate(
-                        prefix: state.currentQuery ?? "",
-                        length: (state.currentQuery?.count ?? 0) + 1))))
+                    do {
+                        let word = try SCMFunctions.generate(
+                            prefix: state.currentQuery ?? "",
+                            length: (state.currentQuery?.count ?? 0) + 1,
+                            model: smallCharacterModel.model!)
+                        return .send(.newWord(word))
+                    } catch {
+                        print("REFRESH ERROR: \(error)")
+                        return .none
+                    }
                 } else {
                     guard let foundSong = state.temporaryMediaInformation else {
                         fatalError("There was no temporary media information")
@@ -212,10 +225,6 @@ struct ListenFeature {
                 }
                 return .none
             }
-        }
-        
-        Scope(state: \.smallCharacterModel, action: \.smallCharacterModel) {
-            SmallCharacterModel()
         }
         
         Scope(state: \.mediaPlayer, action: \.mediaPlayer) {

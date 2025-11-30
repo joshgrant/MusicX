@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/joshgrant/SmallCharacterModel.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "a57b3a7c39383bf78249df08bf2483fc81504ac3"
+        "revision" : "b0a689868456a2b2154778e790c77fd85726571d",
+        "version" : "3.0.3"
       }
     },
     {
