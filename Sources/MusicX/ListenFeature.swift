@@ -137,13 +137,14 @@ struct ListenFeature {
             case .refreshSong:
                 state.isLoading = true
                 // Start with 2 just to reduce API calls
-                do {
-                    let word = try SCMFunctions.generate(prefix: "", length: 5, model: appState.model.model!)
-                    return .send(.newWord(word))
-                } catch {
-                    print("REFRESH ERROR: \(error)")
-                    return .none
-                }
+//                do {
+//                    let word = try SCMFunctions.generate(prefix: "", length: 5, model: appState.model.model!)
+//                    return .send(.newWord(word))
+//                } catch {
+//                    print("REFRESH ERROR: \(error)")
+//                    return .none
+//                }
+                return .none
             case .modelLoadingFailed(let error):
                 print(error)
                 guard state.buildProgress == nil else {
@@ -162,16 +163,17 @@ struct ListenFeature {
             case .fetchedMediaInformation(let word, let mediaInformation):
                 if let element = mediaInformation.randomElement() {
                     state.temporaryMediaInformation = element
-                    do {
-                        let word = try SCMFunctions.generate(
-                            prefix: state.currentQuery ?? "",
-                            length: (state.currentQuery?.count ?? 0) + 1,
-                            model: appState.model.model!)
-                        return .send(.newWord(word))
-                    } catch {
-                        print("REFRESH ERROR: \(error)")
-                        return .none
-                    }
+//                    do {
+//                        let word = try SCMFunctions.generate(
+//                            prefix: state.currentQuery ?? "",
+//                            length: (state.currentQuery?.count ?? 0) + 1,
+//                            model: appState.model.model!)
+//                        return .send(.newWord(word))
+//                    } catch {
+//                        print("REFRESH ERROR: \(error)")
+//                        return .none
+//                    }
+                    return .none
                 } else {
                     guard let foundSong = state.temporaryMediaInformation else {
                         fatalError("There was no temporary media information")

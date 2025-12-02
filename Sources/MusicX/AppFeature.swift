@@ -57,11 +57,11 @@ struct AppFeature {
             case .onAppear:
                 return .merge([
                     .run { send in
-                        do {
-                            try SCMFunctions.load(state: &appState.model)
-                        } catch {
-                            await send(.listen(.modelLoadingFailed(error)))
-                        }
+//                        do {
+//                            try SCMFunctions.load(state: &appState.model)
+//                        } catch {
+//                            await send(.listen(.modelLoadingFailed(error)))
+//                        }
                     },
                     .run { send in
                         let result = await MusicAuthorization.request()

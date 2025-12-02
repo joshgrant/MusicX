@@ -4,8 +4,8 @@ let project = Project(
     name: "MusicX",
     organizationName: "BCE Labs",
     packages: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .branch("main")),
-        .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", from: "3.0.3")
+//        .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", from: "3.0.3")
+        .package(path: "../../Packages/SmallCharacterModel")
     ],
     targets: [
         .target(
@@ -14,15 +14,23 @@ let project = Project(
             product: .app,
             bundleId: "com.bcelabs.MusicX",
             infoPlist: .file(path: "Info.plist"),
-            sources: ["Sources/**"],
+            sources: ["Sources/MusicX/**"],
             resources: ["Resources/**"],
             dependencies: [
-                .package(product: "ComposableArchitecture"),
-                .package(product: "SmallCharacterModel")
+                .target(name: "MusicXCore")
             ],
             settings: .settings(configurations: [
                 .debug(name: "MusicX.xcconfig")
             ])),
+        .target(
+            name: "MusicXCore",
+            destinations: [.mac, .iPhone, .iPad],
+            product: .framework,
+            bundleId: "com.bcelabs.MusicXCore",
+            sources: ["Sources/Core/**"],
+            dependencies: [
+                .package(product: "SmallCharacterModel"),
+            ]),
         .target(
             name: "MusicXTests",
             destinations: [.mac, .iPad, .iPhone],
