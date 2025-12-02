@@ -21,6 +21,37 @@ public struct MusicXSong: Codable, Hashable, Identifiable, PlayableMusicItem {
     public var url: URL?
     
     public init(
+        playParameters: PlayParameters? = nil,
+        id: MusicItemID,
+        title: String,
+        artistName: String,
+        albumTitle: String? = nil,
+        releaseDate: Date? = nil,
+        duration: TimeInterval? = nil,
+        genreNames: [String],
+        albumArtURL: URL? = nil,
+        albumArtThumbnailURL: URL? = nil,
+        artistURL: URL? = nil,
+        url: URL? = nil
+    ) {
+        self.playParameters = playParameters
+        self.id = id
+        self.title = title
+        self.artistName = artistName
+        self.albumTitle = albumTitle
+        self.releaseDate = releaseDate
+        self.duration = duration
+        self.genreNames = genreNames
+        self.albumArtURL = albumArtURL
+        self.albumArtThumbnailURL = albumArtThumbnailURL
+        self.artistURL = artistURL
+        self.url = url
+    }
+}
+
+extension MusicXSong {
+    
+    public init(
         song: MusicKit.Song,
         artworkSize: Int = 512,
         thumbnailSize: Int = 64

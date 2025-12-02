@@ -25,6 +25,12 @@ class MusicServiceSpy: MusicService {
         return .authorized
     }
     
+    func findSongs(term: String, includeTopResults: Bool) async throws -> [MusicXCore.MusicXSong] {
+        return [
+            .init(id: .init(""), title: "Mock Song", artistName: "Mocky", genreNames: ["Mock"])
+        ]
+    }
+    
     func prepareToPlay() async throws {
         spyLog.append(#function)
     }
@@ -35,6 +41,7 @@ class MusicServiceSpy: MusicService {
     
     func play() async throws {
         spyLog.append(#function)
+        playbackStatus = .playing
     }
     
     func pause() {

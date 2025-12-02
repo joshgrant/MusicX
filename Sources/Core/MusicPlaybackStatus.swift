@@ -3,13 +3,17 @@
 
 import MusicKit
 
-public enum MusicPlaybackStatus {
+public enum MusicPlaybackStatus: String, CustomStringConvertible {
     case stopped
     case playing
     case paused
     case interrupted
     case seekingForward
     case seekingBackward
+    
+    public var description: String {
+        rawValue
+    }
     
     public init(
         applicationPlaybackStatus: ApplicationMusicPlayer.PlaybackStatus

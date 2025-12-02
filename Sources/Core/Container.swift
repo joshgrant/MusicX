@@ -4,11 +4,18 @@
 import OSLog
 import SmallCharacterModel
 
+@Observable
 public class Container {
+    
+    // MARK: - Properties
+    
     public let logger: Logger
     public let model: CharacterModelState
     public let musicService: MusicService
-    public let appState: AppState
+    
+    public var appState: AppState
+    
+    // MARK: - Initialization
     
     public init(
         logger: Logger,

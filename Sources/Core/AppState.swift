@@ -3,42 +3,32 @@
 
 import Observation
 
-@Observable
-public class AppState: Codable {
+public struct AppState: Codable {
     
     public struct Settings: Codable {
-        
-        public enum SearchType: Codable {
-            case song
-            case album
-            case artist
-        }
         
         public enum RandomMode: Codable {
             case probable
             case chaotic
         }
         
-        var searchType: SearchType
         var randomMode: RandomMode
         var autoPlay: Bool
         var includeTopResults: Bool
         
         public init(
-            searchType: SearchType,
             randomMode: RandomMode,
             autoPlay: Bool,
             includeTopResults: Bool
         ) {
-            self.searchType = searchType
             self.randomMode = randomMode
             self.autoPlay = autoPlay
             self.includeTopResults = includeTopResults
         }
     }
     
-    public class UIState: Codable {
-        var isSearching: Bool
+    public struct UIState: Codable {
+        public var isSearching: Bool
         
         public init(isSearching: Bool) {
             self.isSearching = isSearching

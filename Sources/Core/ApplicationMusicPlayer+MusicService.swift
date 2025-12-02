@@ -26,6 +26,17 @@ extension ApplicationMusicPlayer: MusicService {
         }
     }
     
+    public var nextSong: MusicXSong? {
+        // Entries does not have `[safe: #]` array access, unfortunately
+        guard queue.entries.count > 1 else { return nil }
+        switch queue.entries[1].item {
+        case .song(let song):
+            return .init(song: song)
+        default:
+            return nil
+        }
+    }
+    
     @discardableResult
     public func requestAuthorization() async -> MusicAuthorizationStatus {
         switch MusicAuthorization.currentStatus {
@@ -35,6 +46,30 @@ extension ApplicationMusicPlayer: MusicService {
         default:
             return .init(musicAuthorizationStatus: MusicAuthorization.currentStatus)
         }
+    }
+    
+    public func findSongs(
+        term: String,
+        includeTopResults: Bool
+    ) async throws -> [MusicXSong] {
+        var request = MusicCatalogSearchRequest(
+            term: term,
+            types: [Song.self]
+        )
+        request.limit = 5
+        request.includeTopResults = includeTopResults
+        
+        return try await request
+            .response()
+            .songs
+            .map {
+                .init(song: $0)
+            }
+    }
+    
+    public func clearQueue() {
+        queue.entries.removeAll()
+        queue = []
     }
     
     public func enqueue(song: MusicXSong) async throws {

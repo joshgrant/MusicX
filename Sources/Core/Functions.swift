@@ -7,45 +7,31 @@ import SmallCharacterModel
 public func findRandomSong(container: Container) async throws -> MusicXSong {
     container.logger.debug(#function)
     container.appState.uiState.isSearching = true
+    defer { container.appState.uiState.isSearching = false }
     
     func findSong(
         container: Container,
         temporarySong: MusicXSong?,
         query: String?
     ) async throws -> MusicXSong? {
-        let word = try SCMFunctions.generate(
+        let term = try SCMFunctions.generate(
             prefix: query ?? "",
             length: (query?.count ?? 0) + 1,
             model: container.model.model
         )
         
-        container.logger.debug("Requesting: \(word)")
+        container.logger.debug("Requesting: \(term)")
         
-        let types: [any MusicCatalogSearchable.Type]
-        
-        switch container.appState.settings.searchType {
-        case .song:
-            types = [Song.self]
-        case .album:
-            types = [Album.self]
-        case .artist:
-            types = [Artist.self]
-        }
-        
-        var request = MusicCatalogSearchRequest(
-            term: word,
-            types: types
+        let songs = try await container.musicService.findSongs(
+            term: term,
+            includeTopResults: container.appState.settings.includeTopResults
         )
-        request.limit = 5
-        request.includeTopResults = container.appState.settings.includeTopResults
         
-        let response = try await request.response()
-        
-        if let element = response.songs.randomElement() {
+        if let song = songs.randomElement() {
             return try await findSong(
                 container: container,
-                temporarySong: .init(song: element),
-                query: word
+                temporarySong: song,
+                query: term
             )
         } else {
             return temporarySong
@@ -60,7 +46,6 @@ public func findRandomSong(container: Container) async throws -> MusicXSong {
         throw MusicError.failedToFindSongAndNoTemporaryFallback
     }
     
-    container.appState.uiState.isSearching = false
     return song
 }
 
@@ -78,8 +63,23 @@ public func enqueue(
 
 public func play(container: Container) async throws {
     container.logger.debug(#function)
-    try await container.musicService.prepareToPlay()
-    try await container.musicService.play()
+    
+    switch container.musicService.playbackStatus {
+    case .paused:
+        try await container.musicService.prepareToPlay()
+        try await container.musicService.play()
+    case .stopped:
+        if container.musicService.currentSong == nil {
+            container.logger.debug("Requested to play with nothing in the queue. Finding a song")
+            let song = try await findRandomSong(container: container)
+            try await enqueue(song: song, container: container)
+        }
+        
+        try await container.musicService.prepareToPlay()
+        try await container.musicService.play()
+    default:
+        print("Unhandled play status: \(container.musicService.playbackStatus)")
+    }
 }
 
 public func pause(container: Container) {
@@ -90,13 +90,21 @@ public func pause(container: Container) {
 public func skipForward(container: Container) async throws {
     container.logger.debug(#function)
     
-    if container.musicService.queueIsEmpty {
-        container.logger.debug("Skip forward requesting a new song")
-        let song = try await findRandomSong(container: container)
-        try await enqueue(song: song, container: container)
-        try await play(container: container)
-    } else {
+    switch container.musicService.playbackStatus {
+    case .paused, .playing:
+        if container.musicService.queueIsEmpty {
+            let song = try await findRandomSong(container: container)
+            try await enqueue(song: song, container: container)
+        }
+        
         try await container.musicService.skipToNextEntry()
+        try await container.musicService.prepareToPlay()
+        try await container.musicService.play()
+    case .stopped:
+        container.logger.debug("Stopped")
+        try await play(container: container)
+    default:
+        print("Unhandled skip forward status: \(container.musicService.playbackStatus)")
     }
 }
 

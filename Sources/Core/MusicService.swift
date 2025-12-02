@@ -6,13 +6,20 @@ public protocol MusicService {
     var queueIsEmpty: Bool { get }
     var playbackStatus: MusicPlaybackStatus { get }
     var currentSong: MusicXSong? { get }
+    var nextSong: MusicXSong? { get }
     
     @discardableResult
     func requestAuthorization() async -> MusicAuthorizationStatus
+    func findSongs(
+        term: String,
+        includeTopResults: Bool
+    ) async throws -> [MusicXSong]
     func prepareToPlay() async throws
     func enqueue(song: MusicXSong) async throws
+    func clearQueue()
     func play() async throws
     func pause()
+    func stop()
     func skipToNextEntry() async throws
     func skipToPreviousEntry() async throws
 }
