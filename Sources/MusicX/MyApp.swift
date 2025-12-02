@@ -40,7 +40,7 @@ struct MyApp: App {
             Text("Hi")
                 .onAppear {
                     Task {
-                        try await globalFunction()
+//                        try await globalFunction()
 //                        do {
 //                            try await AppState.configure(player: player, appState: appState)
 //                            if let song = try await AppState.findSong(appState: appState, temporarySong: nil, query: nil) {
