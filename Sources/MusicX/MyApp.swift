@@ -3,7 +3,6 @@
 
 import Foundation
 import SwiftUI
-import ComposableArchitecture
 import SwiftData
 import MusicKit
 import MusicXCore
@@ -22,18 +21,18 @@ struct MyApp: App {
         }
     }()
     
-    static var store = StoreOf<AppFeature>(initialState: AppFeature.State()) {
-        AppFeature()
-//            ._printChanges()
-    }
+//    static var store = StoreOf<AppFeature>(initialState: AppFeature.State()) {
+//        AppFeature()
+////            ._printChanges()
+//    }
     
     let player = ApplicationMusicPlayer.shared
     
-    var appState = AppState(model: .init(source: .preTrainedBundleModel(.init(
-        name: "song-titles",
-        cohesion: 3,
-        fileExtension: "media"
-    ))))
+//    var appState = AppState(model: .init(source: .preTrainedBundleModel(.init(
+//        name: "song-titles",
+//        cohesion: 3,
+//        fileExtension: "media"
+//    ))))
     
     var body: some Scene {
         WindowGroup {
@@ -41,14 +40,15 @@ struct MyApp: App {
             Text("Hi")
                 .onAppear {
                     Task {
-                        do {
-                            try await AppState.configure(player: player, appState: appState)
-                            if let song = try await AppState.findSong(appState: appState, temporarySong: nil, query: nil) {
-                                try await AppState.play(song: song, musicPlayer: player, appState: appState)
-                            }
-                        } catch {
-                            print("Failed: \(error)")
-                        }
+                        try await globalFunction()
+//                        do {
+//                            try await AppState.configure(player: player, appState: appState)
+//                            if let song = try await AppState.findSong(appState: appState, temporarySong: nil, query: nil) {
+//                                try await AppState.play(song: song, musicPlayer: player, appState: appState)
+//                            }
+//                        } catch {
+//                            print("Failed: \(error)")
+//                        }
                     }
 
                 }
