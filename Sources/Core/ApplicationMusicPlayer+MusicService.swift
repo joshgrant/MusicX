@@ -39,13 +39,8 @@ extension ApplicationMusicPlayer: MusicService {
     
     @discardableResult
     public func requestAuthorization() async -> MusicAuthorizationStatus {
-        switch MusicAuthorization.currentStatus {
-        case .notDetermined:
-            let result = await MusicAuthorization.request()
-            return .init(musicAuthorizationStatus: result)
-        default:
-            return .init(musicAuthorizationStatus: MusicAuthorization.currentStatus)
-        }
+        let result = await MusicAuthorization.request()
+        return .init(musicAuthorizationStatus: result)
     }
     
     public func findSongs(
@@ -67,16 +62,25 @@ extension ApplicationMusicPlayer: MusicService {
             }
     }
     
-    public func clearQueue() {
-        queue.entries.removeAll()
-        queue = []
-    }
-    
     public func enqueue(song: MusicXSong) async throws {
-        if queueIsEmpty {
-            queue = [song]
-        } else {
-            try await queue.insert(song, position: .tail)
-        }
+        queue = [song]
+    }
+}
+
+extension ApplicationMusicPlayer: @retroactive CustomStringConvertible {
+    public var description: String {
+        """
+        Authorization status: \(MusicAuthorization.currentStatus)
+        Queue is empty: \(queueIsEmpty)
+        Playback status: \(playbackStatus)
+        Current song: \(currentSong?.title ?? "None")
+        Next song: \(nextSong?.title ?? "None")
+        """
+    }
+}
+
+extension ApplicationMusicPlayer: @retroactive CustomDebugStringConvertible {
+    public var debugDescription: String {
+        description
     }
 }

@@ -6,6 +6,8 @@ import SmallCharacterModel
 
 public func findRandomSong(container: Container) async throws -> MusicXSong {
     container.logger.debug(#function)
+    print(container.musicService)
+    
     container.appState.uiState.isSearching = true
     defer { container.appState.uiState.isSearching = false }
     
@@ -54,63 +56,55 @@ public func enqueue(
     container: Container
 ) async throws {
     container.logger.debug(#function)
-    container.logger.debug("Enqueueing and playing: \(song.title)")
+    container.logger.debug("Enqueueing: \(song.title)")
     
     try await container.musicService.enqueue(song: song)
-    
     container.appState.history.append(song)
+    
+    print(container.musicService)
 }
 
 public func play(container: Container) async throws {
     container.logger.debug(#function)
-    
     switch container.musicService.playbackStatus {
     case .paused:
         try await container.musicService.prepareToPlay()
         try await container.musicService.play()
     case .stopped:
-        if container.musicService.currentSong == nil {
-            container.logger.debug("Requested to play with nothing in the queue. Finding a song")
-            let song = try await findRandomSong(container: container)
-            try await enqueue(song: song, container: container)
+        if container.musicService.queueIsEmpty {
+            container.logger.debug("Requested to play with nothing in the queue. Skipping a song")
+            try await skipForward(container: container)
         }
-        
-        try await container.musicService.prepareToPlay()
-        try await container.musicService.play()
     default:
         print("Unhandled play status: \(container.musicService.playbackStatus)")
     }
+    
+    print(container.musicService)
 }
 
 public func pause(container: Container) {
     container.logger.debug(#function)
     container.musicService.pause()
+    print(container.musicService)
 }
 
 public func skipForward(container: Container) async throws {
     container.logger.debug(#function)
     
-    switch container.musicService.playbackStatus {
-    case .paused, .playing:
-        if container.musicService.queueIsEmpty {
-            let song = try await findRandomSong(container: container)
-            try await enqueue(song: song, container: container)
-        }
-        
-        try await container.musicService.skipToNextEntry()
-        try await container.musicService.prepareToPlay()
-        try await container.musicService.play()
-    case .stopped:
-        container.logger.debug("Stopped")
-        try await play(container: container)
-    default:
-        print("Unhandled skip forward status: \(container.musicService.playbackStatus)")
-    }
+    let song = try await findRandomSong(container: container)
+    try await container.musicService.enqueue(song: song)
+    try await container.musicService.prepareToPlay()
+    try await container.musicService.play()
+    
+    print(container.musicService)
 }
 
 public func skipBackward(container: Container) async throws {
     container.logger.debug(#function)
+    
     try await container.musicService.skipToPreviousEntry()
+    
+    print(container.musicService)
 }
 
 public func addToHistory(
@@ -118,7 +112,10 @@ public func addToHistory(
     container: Container
 ) {
     container.logger.debug(#function)
+    
     container.appState.history.append(song)
+    
+    print(container.musicService)
 }
 
 public func removeFromHistory(
@@ -126,9 +123,12 @@ public func removeFromHistory(
     container: Container
 ) {
     container.logger.debug(#function)
+    
     container.appState.history.removeAll(where: {
         song.id == $0.id
     })
+    
+    print(container.musicService)
 }
 
 public func bookmark(
@@ -136,7 +136,10 @@ public func bookmark(
     container: Container
 ) {
     container.logger.debug(#function)
+    
     container.appState.bookmarks.insert(song)
+    
+    print(container.musicService)
 }
 
 public func removeBookmark(
@@ -144,5 +147,8 @@ public func removeBookmark(
     container: Container
 ) {
     container.logger.debug(#function)
+    
     container.appState.bookmarks.remove(song)
+    
+    print(container.musicService)
 }

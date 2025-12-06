@@ -5,10 +5,11 @@ import MusicKit
 import MusicXCore
 
 class MusicServiceSpy: MusicService {
-    var authorizationStatus: MusicXCore.MusicAuthorizationStatus
+    var authorizationStatus: MusicAuthorizationStatus
     var queueIsEmpty: Bool
-    var playbackStatus: MusicXCore.MusicPlaybackStatus
-    var currentSong: MusicXCore.MusicXSong?
+    var playbackStatus: MusicPlaybackStatus
+    var currentSong: MusicXSong?
+    var nextSong: MusicXSong?
     
     var spyLog: [String]
     
@@ -45,6 +46,10 @@ class MusicServiceSpy: MusicService {
     }
     
     func pause() {
+        spyLog.append(#function)
+    }
+    
+    func stop() {
         spyLog.append(#function)
     }
     

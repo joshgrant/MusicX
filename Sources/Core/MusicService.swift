@@ -1,12 +1,13 @@
 // © BCE Labs, 2024. All rights reserved.
 //
 
-public protocol MusicService {
+import Observation
+
+public protocol MusicService: Observable, CustomStringConvertible, CustomDebugStringConvertible {
     var authorizationStatus: MusicAuthorizationStatus { get }
     var queueIsEmpty: Bool { get }
     var playbackStatus: MusicPlaybackStatus { get }
     var currentSong: MusicXSong? { get }
-    var nextSong: MusicXSong? { get }
     
     @discardableResult
     func requestAuthorization() async -> MusicAuthorizationStatus
@@ -16,7 +17,6 @@ public protocol MusicService {
     ) async throws -> [MusicXSong]
     func prepareToPlay() async throws
     func enqueue(song: MusicXSong) async throws
-    func clearQueue()
     func play() async throws
     func pause()
     func stop()

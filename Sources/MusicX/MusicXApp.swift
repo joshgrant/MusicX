@@ -8,9 +8,9 @@ import MusicXCore
 import SmallCharacterModel
 
 @main
-struct MusicXApp: App {
+struct MusicXApp: App {w
     
-    let container = try! Container(
+    @State var container = try! Container(
         logger: .init(subsystem: "MusicX", category: "General"),
         model: .init(source: .preTrainedBundleModel(.init(
             name: "song-titles",
@@ -31,6 +31,10 @@ struct MusicXApp: App {
     var body: some Scene {
         WindowGroup {
             VStack {
+                Text(container.musicService.currentSong?.title ?? "None")
+                
+                Text("Playback status: \(container.musicService.playbackStatus)")
+                
                 Button {
                     Task {
                         try! await play(container: container)

@@ -1,9 +1,11 @@
 // © BCE Labs, 2024. All rights reserved.
 //
 
+import Foundation
 import MusicKit
 
-public enum MusicPlaybackStatus: String, CustomStringConvertible {
+public enum MusicPlaybackStatus: String, CustomStringConvertible, CustomLocalizedStringResourceConvertible {
+    
     case stopped
     case playing
     case paused
@@ -13,6 +15,10 @@ public enum MusicPlaybackStatus: String, CustomStringConvertible {
     
     public var description: String {
         rawValue
+    }
+    
+    public var localizedStringResource: LocalizedStringResource {
+        .init(stringLiteral: rawValue)
     }
     
     public init(
