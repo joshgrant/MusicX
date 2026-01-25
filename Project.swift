@@ -16,7 +16,7 @@ let project = Project(
             infoPlist: .dictionary([
                 "CFBundlePackageType": "$(PRODUCT_BUNDLE_PACKAGE_TYPE)",
                 "CFBundleName": "$(PRODUCT_NAME)",
-                "CFBundleDisplayName": "Morning",
+                "CFBundleDisplayName": "MusicX",
                 "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)",
                 "CFBundleInfoDictionaryVersion": "6.0",
                 "NSHumanReadableCopyright": "Copyright © Joshua Grant. All rights reserved.",
