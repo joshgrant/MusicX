@@ -331,11 +331,14 @@ struct ListenView: View {
     private func shareTrack(media: Media, url: URL) async {
         var itemsToShare: [Any] = []
         
-        // Combine text and URL into one string for better compatibility
-        var textToShare = "I found this track with MusicX:\n\n"
-        textToShare += shareText(for: media)
-        textToShare += "\n\nListen on Apple Music:\n"
-        textToShare += url.absoluteString
+        let textToShare = """
+        I found this track with MusicX:
+        
+        \(shareText(for: media))
+        
+        Listen on Apple Music:
+        \(url.absoluteString)
+        """
         
         // Add the combined text as a single item
         itemsToShare.append(textToShare)
