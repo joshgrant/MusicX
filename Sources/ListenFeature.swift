@@ -265,6 +265,26 @@ struct ListenView: View {
                 }
                 
                 ToolbarItem {
+                    if let media = store.currentMediaInformation,
+                       let url = media.storeURL {
+                        Button {
+                            Task {
+                                await shareTrack(media: media, url: url)
+                            }
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    } else {
+                        Button {
+                            // Disabled state
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .disabled(true)
+                    }
+                }
+                
+                ToolbarItem {
                     Button {
                         store.send(.openSongURL)
                     } label: {
@@ -291,6 +311,75 @@ struct ListenView: View {
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: 512)
+    }
+    
+    private func shareText(for media: Media) -> String {
+        var components: [String] = []
+        
+        if let songName = media.songName {
+            components.append(songName)
+        }
+        
+        if let artistName = media.artistName {
+            components.append("by \(artistName)")
+        }
+        
+        return components.joined(separator: " ")
+    }
+    
+    @MainActor
+    private func shareTrack(media: Media, url: URL) async {
+        var itemsToShare: [Any] = []
+        
+        let textToShare = """
+        I found this track with MusicX:
+        
+        \(shareText(for: media))
+        
+        Listen on Apple Music:
+        \(url.absoluteString)
+        """
+        
+        // Add the combined text as a single item
+        itemsToShare.append(textToShare)
+        
+        // Download and add the album artwork if available
+        if let artworkURL = media.albumArtURL {
+            do {
+                let (imageData, _) = try await URLSession.shared.data(from: artworkURL)
+                if let image = UIImage(data: imageData) {
+                    itemsToShare.append(image)
+                }
+            } catch {
+                print("Failed to download album artwork: \(error)")
+            }
+        }
+        
+        // Present the share sheet
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let rootViewController = window.rootViewController else {
+            return
+        }
+        
+        let activityViewController = UIActivityViewController(
+            activityItems: itemsToShare,
+            applicationActivities: nil
+        )
+        
+        // For iPad support
+        if let popoverController = activityViewController.popoverPresentationController {
+            popoverController.sourceView = rootViewController.view
+            popoverController.sourceRect = CGRect(
+                x: rootViewController.view.bounds.midX,
+                y: rootViewController.view.bounds.midY,
+                width: 0,
+                height: 0
+            )
+            popoverController.permittedArrowDirections = []
+        }
+        
+        rootViewController.present(activityViewController, animated: true)
     }
     
     @ViewBuilder
