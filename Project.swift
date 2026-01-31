@@ -24,6 +24,7 @@ let project = Project(
                 "CFBundleShortVersionString": "$(MARKETING_VERSION)",
                 "CFBundleExecutable": "$(EXECUTABLE_NAME)",
                 "UIRequiresFullScreen": "YES",
+                "ITSAppUsesNonExemptEncryption": "NO",
                 "UISupportedInterfaceOrientations": .array([
                     "UIInterfaceOrientationPortrait"
                 ]),
