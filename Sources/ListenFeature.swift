@@ -75,29 +75,7 @@ struct ListenFeature {
                 .cancellable(id: CancelID.updateTimer)
             case .timerTick:
                 state.currentPlaybackTime = ApplicationMusicPlayer.shared.playbackTime
-                
-                guard
-                    let duration = state.currentMediaInformation?.duration,
-                    let playbackTime = state.currentPlaybackTime
-                else {
-                    return .none
-                }
-                
-                print("Updated at: \(playbackTime) - song duration: \(duration)")
-                
-                // If we have auto-play set to false, we don't do anything here
-                guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
-                    return .none
-                }
-                
-                /// Our tick function only updates every 1 second, so our margin of error is +/- 1 second
-                /// Therefore, we need to give the playback time an additional second of wait, in the worst case
-                /// to compensate.
-                if Int(playbackTime + 1) >= Int(duration) {
-                    return .send(.refreshSong)
-                } else {
-                    return .none
-                }
+                return .none
             case .authorized(let status):
                 switch status {
                 case .authorized:
@@ -206,22 +184,24 @@ struct ListenFeature {
                 
                 return .send(.refreshSong)
             case .playbackStatusChanged(let status):
-                switch status {
-                case .stopped:
-                    print("STOPPED")
-                case .playing:
-                    print("PLAYING")
-                case .paused:
-                    print("PAUSED")
-                case .interrupted:
-                    print("INTERRUPTED")
-                case .seekingForward:
-                    print("SEEKING F")
-                case .seekingBackward:
-                    print("SEEKING B")
-                @unknown default:
-                    print("DEFAULT")
+                guard status == .paused || status == .stopped else { return .none }
+                
+                // If we have auto-play set to false, we don't do anything here
+                guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
+                    return .none
                 }
+                
+                guard
+                    let duration = state.currentMediaInformation?.duration,
+                    let playbackTime = state.currentPlaybackTime
+                else {
+                    return .none
+                }
+                
+                if playbackTime >= duration - 2 {
+                    return .send(.refreshSong)
+                }
+            
                 return .none
             }
         }
