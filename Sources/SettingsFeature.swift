@@ -22,13 +22,11 @@ struct SettingsFeature {
     struct State: Equatable {
         var searchType: SearchType = .song
         var randomMode: RandomMode = .probable
-        var autoPlay = true
     }
     
     enum Action {
         case searchTypeChanged(SearchType)
         case randomModeChanged(RandomMode)
-        case toggleAutoPlay(Bool)
     }
     
     var body: some ReducerOf<Self> {
@@ -39,9 +37,6 @@ struct SettingsFeature {
                 return .none
             case .randomModeChanged(let randomMode):
                 state.randomMode = randomMode
-                return .none
-            case .toggleAutoPlay(let autoPlay):
-                state.autoPlay = autoPlay
                 return .none
             }
         }
@@ -82,7 +77,11 @@ struct SettingsView: View {
                 }
             }
             
-            Toggle(isOn: $store.autoPlay.sending(\.toggleAutoPlay)) {
+            Toggle(isOn: .init(get: {
+                UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
+            }, set: { newValue in
+                UserDefaults.standard.set(newValue, forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
+            })) {
                 Text("Auto Play")
             }
         }

@@ -85,6 +85,11 @@ struct ListenFeature {
                 
                 print("Updated at: \(playbackTime) - song duration: \(duration)")
                 
+                // If we have auto-play set to false, we don't do anything here
+                guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
+                    return .none
+                }
+                
                 /// Our tick function only updates every 1 second, so our margin of error is +/- 1 second
                 /// Therefore, we need to give the playback time an additional second of wait, in the worst case
                 /// to compensate.
@@ -174,6 +179,11 @@ struct ListenFeature {
                 print("FOUND SONG: \(word)")
                 if let id = media.musicId {
                     state.currentMediaInformation = media
+                    
+                    guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
+                        return .none
+                    }
+                    
                     return .send(.mediaPlayer(.playMedia(id)))
                 } else {
                     fatalError()

@@ -20,9 +20,18 @@ struct MyApp: App {
         }
     }()
     
+    static let configurationId: UUID? = {
+        if UserDefaults.standard.value(forKey: Constants.UserDefaultsKey.configurationId.rawValue) == nil {
+            UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
+            UserDefaults.standard.set(UUID().uuidString, forKey: Constants.UserDefaultsKey.configurationId.rawValue)
+        }
+        
+        return UserDefaults.standard.value(forKey: Constants.UserDefaultsKey.configurationId.rawValue) as? UUID
+    }()
+    
     static var store = StoreOf<AppFeature>(initialState: AppFeature.State()) {
         AppFeature()
-//            ._printChanges()
+        //            ._printChanges()
     }
     
     var body: some Scene {
