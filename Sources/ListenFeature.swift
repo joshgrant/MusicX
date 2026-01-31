@@ -85,7 +85,15 @@ struct ListenFeature {
                 
                 print("Updated at: \(playbackTime) - song duration: \(duration)")
                 
-                if Int(playbackTime) >= Int(duration) {
+                // If we have auto-play set to false, we don't do anything here
+                guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
+                    return .none
+                }
+                
+                /// Our tick function only updates every 1 second, so our margin of error is +/- 1 second
+                /// Therefore, we need to give the playback time an additional second of wait, in the worst case
+                /// to compensate.
+                if Int(playbackTime + 1) >= Int(duration) {
                     return .send(.refreshSong)
                 } else {
                     return .none
@@ -171,6 +179,11 @@ struct ListenFeature {
                 print("FOUND SONG: \(word)")
                 if let id = media.musicId {
                     state.currentMediaInformation = media
+                    
+                    guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
+                        return .none
+                    }
+                    
                     return .send(.mediaPlayer(.playMedia(id)))
                 } else {
                     fatalError()
@@ -306,11 +319,12 @@ struct ListenView: View {
     }
     
     private var albumArtPlaceholderView: some View {
-        Rectangle()
-            .fill(Color.accentColor)
+        Image("LoadingView")
+            .resizable()
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: 512)
+            .redacted(reason: .placeholder)
     }
     
     private func shareText(for media: Media) -> String {
@@ -396,41 +410,62 @@ struct ListenView: View {
     }
     
     private var bottomView: some View {
-        VStack {
-            if let media = store.currentMediaInformation {
-                VStack(spacing: 4) {
-                    if let artistName = media.artistName {
-                        Text(artistName)
-                    }
-                    
-                    if let albumName = media.albumName {
-                        Text(albumName)
-                    }
-                    
-                    if let songName = media.songName {
-                        Text(songName)
-                    }
-                    
-                    if let releaseDate = media.releaseDate {
-                        Text(releaseDate.formatted(date: .numeric, time: .omitted))
-                    }
-                    
-                    if let genres = media.genreNames {
-                        ScrollView(.horizontal) {
-                            HStack {
-                                ForEach(genres, id: \.self) {
-                                    Text($0)
-                                }
-                            }
-                        }
-                        .scrollIndicators(.hidden)
-                    }
+        VStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                if let songName = store.currentMediaInformation?.songName {
+                    Label(songName, systemImage: "music.note")
+                        .font(.title3)
+                } else {
+                    Text("Loading song")
+                        .redacted(reason: .placeholder)
                 }
                 
-                if let duration = media.duration, let time = store.currentPlaybackTime {
-                    ProgressView(value: time, total: duration)
-                        .animation(.easeInOut(duration: duration - time), value: time)
+                if let artistName = store.currentMediaInformation?.artistName {
+                    Label(artistName, systemImage: "person.crop.square")
+                } else {
+                    Text("Loading artist")
+                        .font(.title3)
+                        .redacted(reason: .placeholder)
                 }
+                
+                if let albumName = store.currentMediaInformation?.albumName {
+                    Label(albumName, systemImage: "rectangle.stack.badge.play")
+                        .font(.subheadline)
+                } else {
+                    Text("Loading album")
+                        .font(.subheadline)
+                        .redacted(reason: .placeholder)
+                }
+                
+                if let releaseDate = store.currentMediaInformation?.releaseDate {
+                    Text(releaseDate.formatted(date: .numeric, time: .omitted))
+                } else {
+                    Text("Loading date")
+                        .redacted(reason: .placeholder)
+                }
+                
+                if let genres = store.currentMediaInformation?.genreNames {
+                    ScrollView(.horizontal) {
+                        HStack {
+                            ForEach(genres, id: \.self) {
+                                Text($0)
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                } else {
+                    Text("Loading genres")
+                        .redacted(reason: .placeholder)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .multilineTextAlignment(.leading)
+            
+            if let duration = store.currentMediaInformation?.duration, let time = store.currentPlaybackTime {
+                ProgressView(value: time, total: duration)
+                    .animation(.easeInOut(duration: duration - time), value: time)
+            } else {
+                ProgressView(value: 0, total: 1)
             }
             
             HStack(spacing: 40) {
@@ -442,6 +477,7 @@ struct ListenView: View {
                 }
                 .buttonStyle(.plain)
                 .opacity(0)
+                .disabled(store.isLoading)
                 
                 // TODO: Fix me?
                 Button {
@@ -462,6 +498,7 @@ struct ListenView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .disabled(store.isLoading)
                 
                 Button {
                     store.send(.refreshSong)
@@ -470,12 +507,11 @@ struct ListenView: View {
                         .font(.largeTitle)
                 }
                 .buttonStyle(.plain)
+                .disabled(store.isLoading)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(16)
-        .disabled(store.isLoading)
-        .background(.thickMaterial)
     }
 }
 

@@ -68,7 +68,9 @@ struct AppFeature {
             case .settingsButtonTapped(let show):
                 state.showingSettingsPopover = show
                 return .none
-            case .listen, .history, .saved, .settings:
+            case .settings:
+                return .none
+            case .listen, .history, .saved:
                 return .none
             case .filterPickerOptionChanged(let option):
                 state.selectedFilterPickerOption = option
