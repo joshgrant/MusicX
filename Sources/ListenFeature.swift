@@ -444,38 +444,47 @@ struct ListenFeature {
         (media.genreNames ?? []).contains { hidden.contains($0.lowercased()) }
     }
 
-    /// Generates progressively longer words until the catalog search comes up
-    /// empty, then resolves the last successful match into a playable `Song`.
-    /// Songs in a hidden genre are skipped; a few fresh words are tried
+    /// Starts from a 7-letter word. If the search comes up empty, the word
+    /// is shortened a letter at a time and the first batch with results
+    /// wins. If the 7-letter word already has results, the word grows a
+    /// letter at a time until the search comes up empty and the last
+    /// successful match wins. Hidden genres are filtered out by the music
+    /// service before results are returned; a few fresh words are tried
     /// before giving up.
     private func findSong(model: Model) async throws -> QueuedSong {
         let hidden = Set(UserDefaults.standard.hiddenGenres.map { $0.lowercased() })
 
         for _ in 0..<5 {
-            var word = try SCMFunctions.generate(prefix: "", length: 5, model: model)
+            var word = try SCMFunctions.generate(prefix: "", length: 7, model: model)
             var candidate: Media?
 
-            while true {
-                let results = try await musicService.search(word)
-                guard let element = results.randomElement() else { break }
+            var results = try await musicService.search(word, hidden)
 
-                candidate = element
+            if results.isEmpty {
+                while results.isEmpty, word.count > 1 {
+                    word = String(word.dropLast())
+                    results = try await musicService.search(word, hidden)
+                }
+                candidate = results.randomElement()
+            } else {
+                while let element = results.randomElement() {
+                    candidate = element
 
-                guard let longer = try? SCMFunctions.generate(
-                    prefix: word,
-                    length: word.count + 1,
-                    model: model),
-                      longer != word
-                else { break }
+                    guard let longer = try? SCMFunctions.generate(
+                        prefix: word,
+                        length: word.count + 1,
+                        model: model),
+                          longer != word
+                    else { break }
 
-                word = longer
+                    word = longer
+                    results = try await musicService.search(word, hidden)
+                }
             }
 
             guard let media = candidate, let id = media.musicId else {
-                throw SongDiscoveryError.noResults
+                continue
             }
-
-            if Self.matchesHiddenGenre(media, hidden: hidden) { continue }
 
             let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: id)
             guard let song = try await request.response().items.first else {
