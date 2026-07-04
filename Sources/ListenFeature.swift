@@ -8,74 +8,129 @@ import MusicKit
 import SwiftData
 import Combine
 
+/// A discovered song, with the MusicKit `Song` already resolved so playback can start immediately.
+struct QueuedSong: Equatable {
+    let media: Media
+    let song: Song
+}
+
 @Reducer
 struct ListenFeature {
-    
+
     @ObservableState
     struct State: Equatable {
-        var smallCharacterModel = SmallCharacterModel.State(source: .preTrainedBundleModel(.init(
-            name: "song-titles",
-            cohesion: 3,
-            fileExtension: "media")))
-        
         var mediaPlayer = MediaPlayerFeature.State()
-        
-        var buildProgress: Double?
-        
+
+        var model: Model?
+
         var isLoading: Bool = true
-        var currentQuery: String? = nil
+        var isFetchingFirstSong: Bool = false
         var currentMediaInformation: Media?
-        var temporaryMediaInformation: Media?
-        
+        var currentSong: Song?
+
+        // Pre-fetch pipeline
+        var nextUp: QueuedSong?
+        var isPrefetching: Bool = false
+        var pendingAdvance: Bool = false
+        var pendingPlay: Bool = false
+
         var currentPlaybackTime: TimeInterval?
-        
+
         var musicSubscription: MusicSubscription?
     }
-    
+
     enum Action {
         case onAppear
         case timerTick
-        
-        case smallCharacterModel(SmallCharacterModel.Action)
+
+        case loadModel
+        case modelLoaded(Model)
+        case modelLoadFailed(String)
+
         case mediaPlayer(MediaPlayerFeature.Action)
-        
+
         case openSongURL
         case saveToFavoritesToggled
-        
-        case refreshSong
-        
+
+        case playButtonTapped
+        case skipButtonTapped
+        case seek(TimeInterval)
+
         case attemptToLoadFirstSong
-        
-        case fetchedMediaInformation(word: String, searchResults: [Media])
-        case foundNextSong(word: String, mediaInformation: Media)
-        
+        case firstSongLoaded(QueuedSong)
+        case firstSongFailed
+
+        case prefetchNextSong
+        case nextSongPrefetched(QueuedSong)
+        case prefetchFailed(String)
+
+        case advanceToNextSong
+        case songFinished
+
         case authorized(MusicAuthorization.Status)
-        case failedToAuthenticate(Error)
-        
         case playbackStatusChanged(MusicPlayer.PlaybackStatus)
     }
-    
+
     enum CancelID {
         case updateTimer
     }
-    
+
+    enum SongDiscoveryError: Error {
+        case noResults
+        case songUnavailable
+    }
+
     @Dependency(\.openURL) var openURL
     @Dependency(\.musicService) var musicService
     @Dependency(\.continuousClock) var clock
-    
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .run { send in
-                    for await _ in self.clock.timer(interval: .seconds(1)) {
-                        await send(.timerTick)
+                return .merge(
+                    .send(.mediaPlayer(.onAppear)),
+                    .run { send in
+                        for await _ in self.clock.timer(interval: .seconds(1)) {
+                            await send(.timerTick)
+                        }
                     }
-                }
-                .cancellable(id: CancelID.updateTimer)
+                    .cancellable(id: CancelID.updateTimer, cancelInFlight: true)
+                )
             case .timerTick:
-                state.currentPlaybackTime = ApplicationMusicPlayer.shared.playbackTime
+                let previousTime = state.currentPlaybackTime ?? 0
+                let currentTime = musicService.playbackTime()
+                state.currentPlaybackTime = currentTime
+
+                // Fallback end-of-song detection: the player can reset its
+                // playback time to 0 when the queue finishes, so compare the
+                // last observed time against the duration as well.
+                let status = musicService.playbackStatus()
+                if state.mediaPlayer.isPlaying,
+                   status == .paused || status == .stopped,
+                   let duration = state.currentMediaInformation?.duration,
+                   max(previousTime, currentTime) >= duration - 2 {
+                    state.mediaPlayer.isPlaying = false
+                    return .send(.songFinished)
+                }
+
                 return .none
+            case .loadModel:
+                return .run { send in
+                    let source = ModelSource.preTrainedBundleModel(.init(
+                        name: "song-titles",
+                        cohesion: 3,
+                        fileExtension: "media"))
+                    let characterModel = try CharacterModelState(source: source)
+                    await send(.modelLoaded(characterModel.model))
+                } catch: { error, send in
+                    await send(.modelLoadFailed(error.localizedDescription))
+                }
+            case .modelLoaded(let model):
+                state.model = model
+                return .send(.attemptToLoadFirstSong)
+            case .modelLoadFailed(let message):
+                fatalError(message)
             case .authorized(let status):
                 switch status {
                 case .authorized:
@@ -95,7 +150,7 @@ struct ListenFeature {
                 guard let mediaId = state.currentMediaInformation?.musicId else { return .none }
                 @Dependency(\.database) var database
                 let context = database.context()
-                
+
                 // Fetch the persistent object and modify it
                 if let persistentMedia = try? context.fetch(
                     FetchDescriptor<Media>(predicate: #Predicate { $0.musicId == mediaId })
@@ -103,133 +158,237 @@ struct ListenFeature {
                     persistentMedia.bookmarked.toggle()
                     try? context.save()
                 }
-                
+
                 // Update the local state to reflect the change
                 state.currentMediaInformation?.bookmarked.toggle()
                 return .none
-            case .refreshSong:
+            case .playButtonTapped:
+                if state.mediaPlayer.isPlaying {
+                    return .send(.mediaPlayer(.pause))
+                }
+
+                guard let song = state.currentSong else { return .none }
+
+                if state.mediaPlayer.queuedSongID == song.id {
+                    return .send(.mediaPlayer(.resume))
+                }
+
+                return .send(.mediaPlayer(.playSong(song)))
+            case .skipButtonTapped:
+                guard state.currentMediaInformation != nil else { return .none }
+
+                state.pendingPlay = state.mediaPlayer.isPlaying || autoPlayEnabled
+
+                if state.nextUp != nil {
+                    return .send(.advanceToNextSong)
+                }
+
+                // The next song isn't ready yet: show the loading state and
+                // advance as soon as the pre-fetch completes.
                 state.isLoading = true
-                // Start with 2 just to reduce API calls
-                return .send(.smallCharacterModel(.wordGenerator(.generate(prefix: "", length: 5))))
-            case .smallCharacterModel(.modelLoader(.delegate(.modelLoadingFailed(let error)))):
-                print(error)
-                guard state.buildProgress == nil else {
+                state.pendingAdvance = true
+                return .send(.prefetchNextSong)
+            case .songFinished:
+                guard autoPlayEnabled else { return .none }
+
+                state.pendingPlay = true
+
+                if state.nextUp != nil {
+                    return .send(.advanceToNextSong)
+                }
+
+                state.isLoading = true
+                state.pendingAdvance = true
+                return .send(.prefetchNextSong)
+            case .seek(let time):
+                state.currentPlaybackTime = time
+                return .send(.mediaPlayer(.seek(time)))
+            case .attemptToLoadFirstSong:
+                guard let model = state.model,
+                      musicService.authorizationStatus() == .authorized,
+                      state.currentMediaInformation == nil,
+                      !state.isFetchingFirstSong
+                else {
                     return .none
                 }
-                fatalError(error.localizedDescription)
-            case .smallCharacterModel(.modelBuilder(.delegate(.progress(let progress)))):
-                state.buildProgress = progress
-                return .none
-            case .smallCharacterModel(.modelBuilder(.delegate(.saved))):
-                state.buildProgress = nil
-                return .send(.attemptToLoadFirstSong)
-            case .smallCharacterModel(.modelLoader(.delegate(.loaded))):
-                state.buildProgress = nil
-                return .send(.attemptToLoadFirstSong)
-            case .smallCharacterModel(.wordGenerator(.delegate(.newWord(let word)))):
-                state.currentQuery = word
+
+                state.isFetchingFirstSong = true
+                state.isLoading = true
                 return .run { send in
                     do {
-                        let mediaInformation = try await musicService.search(word)
-                        await send(.fetchedMediaInformation(word: word, searchResults: mediaInformation))
+                        let queued = try await findSong(model: model)
+                        await send(.firstSongLoaded(queued))
                     } catch {
-                        await send(.failedToAuthenticate(error))
+                        print("Failed to load the first song: \(error)")
+                        await send(.firstSongFailed)
                     }
                 }
-            case .smallCharacterModel:
-                return .none
-            case .fetchedMediaInformation(let word, let mediaInformation):
-                if let element = mediaInformation.randomElement() {
-                    state.temporaryMediaInformation = element
-                    return .send(.smallCharacterModel(.wordGenerator(.generate(
-                        prefix: state.currentQuery ?? "",
-                        length: (state.currentQuery?.count ?? 0) + 1))))
-                } else {
-                    guard let foundSong = state.temporaryMediaInformation else {
-                        fatalError("There was no temporary media information")
-                    }
-                    state.isLoading = false
-                    @Dependency(\.database) var database
-                    database.context().insert(foundSong)
-                    return .send(.foundNextSong(word: word, mediaInformation: foundSong))
+            case .firstSongLoaded(let queued):
+                state.isFetchingFirstSong = false
+                state.isLoading = false
+                state.currentMediaInformation = queued.media
+                state.currentSong = queued.song
+                state.currentPlaybackTime = 0
+                insertIntoHistory(queued.media)
+
+                var effects: [Effect<Action>] = [.send(.prefetchNextSong)]
+                if autoPlayEnabled {
+                    effects.insert(.send(.mediaPlayer(.playSong(queued.song))), at: 0)
                 }
-            case .foundNextSong(let word, let media):
-                print("FOUND SONG: \(word)")
-                if let id = media.musicId {
-                    state.currentMediaInformation = media
-                    
-                    guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
-                        return .none
-                    }
-                    
-                    return .send(.mediaPlayer(.playMedia(id)))
-                } else {
-                    fatalError()
-                }
-            case .failedToAuthenticate(let error):
+                return .merge(effects)
+            case .firstSongFailed:
+                state.isFetchingFirstSong = false
                 return .run { send in
                     let result = await MusicAuthorization.request()
                     await send(.authorized(result))
                 }
-            case .mediaPlayer:
-                return .none
-            case .attemptToLoadFirstSong:
-                if state.buildProgress != nil {
-                    return .none
-                }
-                
-                if musicService.authorizationStatus() != .authorized {
-                    return .none
-                }
-                
-                return .send(.refreshSong)
-            case .playbackStatusChanged(let status):
-                guard status == .paused || status == .stopped else { return .none }
-                
-                // If we have auto-play set to false, we don't do anything here
-                guard UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue) else {
-                    return .none
-                }
-                
-                guard
-                    let duration = state.currentMediaInformation?.duration,
-                    let playbackTime = state.currentPlaybackTime
+            case .prefetchNextSong:
+                guard let model = state.model,
+                      !state.isPrefetching,
+                      state.nextUp == nil
                 else {
                     return .none
                 }
-                
-                if playbackTime >= duration - 2 {
-                    return .send(.refreshSong)
+
+                state.isPrefetching = true
+                return .run { send in
+                    do {
+                        let queued = try await findSong(model: model)
+                        await send(.nextSongPrefetched(queued))
+                    } catch {
+                        await send(.prefetchFailed(error.localizedDescription))
+                    }
                 }
-            
+            case .nextSongPrefetched(let queued):
+                state.isPrefetching = false
+                state.nextUp = queued
+
+                if state.pendingAdvance {
+                    return .send(.advanceToNextSong)
+                }
+
+                return .none
+            case .prefetchFailed(let message):
+                print("Failed to pre-fetch the next song: \(message)")
+                state.isPrefetching = false
+                state.pendingAdvance = false
+                state.pendingPlay = false
+                state.isLoading = false
+                return .none
+            case .advanceToNextSong:
+                guard let next = state.nextUp else { return .none }
+
+                state.nextUp = nil
+                state.pendingAdvance = false
+                state.isLoading = false
+                state.currentMediaInformation = next.media
+                state.currentSong = next.song
+                state.currentPlaybackTime = 0
+                insertIntoHistory(next.media)
+
+                let play = state.pendingPlay
+                state.pendingPlay = false
+
+                var effects: [Effect<Action>] = [.send(.prefetchNextSong)]
+                if play {
+                    effects.insert(.send(.mediaPlayer(.playSong(next.song))), at: 0)
+                }
+                return .merge(effects)
+            case .playbackStatusChanged(let status):
+                switch status {
+                case .playing:
+                    state.mediaPlayer.isPlaying = true
+                    return .none
+                case .paused, .stopped:
+                    let wasPlaying = state.mediaPlayer.isPlaying
+                    state.mediaPlayer.isPlaying = false
+
+                    guard wasPlaying,
+                          let duration = state.currentMediaInformation?.duration
+                    else {
+                        return .none
+                    }
+
+                    // The player can reset its playback time to 0 when the
+                    // queue finishes, so fall back to the last observed time.
+                    let time = max(state.currentPlaybackTime ?? 0, musicService.playbackTime())
+                    if time >= duration - 2 {
+                        return .send(.songFinished)
+                    }
+
+                    return .none
+                default:
+                    return .none
+                }
+            case .mediaPlayer:
                 return .none
             }
         }
-        
-        Scope(state: \.smallCharacterModel, action: \.smallCharacterModel) {
-            SmallCharacterModel()
-        }
-        
+
         Scope(state: \.mediaPlayer, action: \.mediaPlayer) {
             MediaPlayerFeature()
         }
+    }
+
+    /// Generates progressively longer words until the catalog search comes up
+    /// empty, then resolves the last successful match into a playable `Song`.
+    private func findSong(model: Model) async throws -> QueuedSong {
+        var word = try SCMFunctions.generate(prefix: "", length: 5, model: model)
+        var candidate: Media?
+
+        while true {
+            let results = try await musicService.search(word)
+            guard let element = results.randomElement() else { break }
+
+            candidate = element
+
+            guard let longer = try? SCMFunctions.generate(
+                prefix: word,
+                length: word.count + 1,
+                model: model),
+                  longer != word
+            else { break }
+
+            word = longer
+        }
+
+        guard let media = candidate, let id = media.musicId else {
+            throw SongDiscoveryError.noResults
+        }
+
+        let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: id)
+        guard let song = try await request.response().items.first else {
+            throw SongDiscoveryError.songUnavailable
+        }
+
+        return QueuedSong(media: media, song: song)
+    }
+
+    private func insertIntoHistory(_ media: Media) {
+        @Dependency(\.database) var database
+        let context = database.context()
+        context.insert(media)
+        try? context.save()
+    }
+
+    private var autoPlayEnabled: Bool {
+        UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
     }
 }
 
 import SwiftUI
 
 struct ListenView: View {
-    
+
     @Bindable var store: StoreOf<ListenFeature>
     @ObservedObject var state = ApplicationMusicPlayer.shared.state
-    
+
+    @State private var scrubTime: TimeInterval?
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                if let progress = store.buildProgress {
-                    albumArtPlaceholderView
-                    ProgressView("Loading Model", value: progress)
-                } else if store.isLoading {
+                if store.isLoading {
                     albumArtPlaceholderView
                     ProgressView()
                         .controlSize(.large)
@@ -256,7 +415,7 @@ struct ListenView: View {
                     }
                     .disabled(store.state.currentMediaInformation == nil)
                 }
-                
+
                 ToolbarItem {
                     if let media = store.currentMediaInformation,
                        let url = media.storeURL {
@@ -276,7 +435,7 @@ struct ListenView: View {
                         .disabled(true)
                     }
                 }
-                
+
                 ToolbarItem {
                     Button {
                         store.send(.openSongURL)
@@ -288,7 +447,7 @@ struct ListenView: View {
             }
         }
         .refreshable {
-            store.send(.refreshSong)
+            store.send(.skipButtonTapped)
         }
         .onChange(of: state.playbackStatus) { oldValue, newValue in
             store.send(.playbackStatusChanged(newValue))
@@ -297,7 +456,7 @@ struct ListenView: View {
             store.send(.onAppear)
         }
     }
-    
+
     private var albumArtPlaceholderView: some View {
         Image("LoadingView")
             .resizable()
@@ -306,37 +465,37 @@ struct ListenView: View {
             .frame(maxWidth: 512)
             .redacted(reason: .placeholder)
     }
-    
+
     private func shareText(for media: Media) -> String {
         var components: [String] = []
-        
+
         if let songName = media.songName {
             components.append(songName)
         }
-        
+
         if let artistName = media.artistName {
             components.append("by \(artistName)")
         }
-        
+
         return components.joined(separator: " ")
     }
-    
+
     @MainActor
     private func shareTrack(media: Media, url: URL) async {
         var itemsToShare: [Any] = []
-        
+
         let textToShare = """
         I found this track with MusicX:
-        
+
         \(shareText(for: media))
-        
+
         Listen on Apple Music:
         \(url.absoluteString)
         """
-        
+
         // Add the combined text as a single item
         itemsToShare.append(textToShare)
-        
+
         // Download and add the album artwork if available
         if let artworkURL = media.albumArtURL {
             do {
@@ -348,19 +507,19 @@ struct ListenView: View {
                 print("Failed to download album artwork: \(error)")
             }
         }
-        
+
         // Present the share sheet
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first,
               let rootViewController = window.rootViewController else {
             return
         }
-        
+
         let activityViewController = UIActivityViewController(
             activityItems: itemsToShare,
             applicationActivities: nil
         )
-        
+
         // For iPad support
         if let popoverController = activityViewController.popoverPresentationController {
             popoverController.sourceView = rootViewController.view
@@ -372,10 +531,10 @@ struct ListenView: View {
             )
             popoverController.permittedArrowDirections = []
         }
-        
+
         rootViewController.present(activityViewController, animated: true)
     }
-    
+
     @ViewBuilder
     private func artworkView(media: Media) -> some View {
         AsyncImage(url: media.albumArtURL) { image in
@@ -388,7 +547,29 @@ struct ListenView: View {
         }
         .frame(maxWidth: 512, maxHeight: 512)
     }
-    
+
+    @ViewBuilder
+    private var progressSlider: some View {
+        if let duration = store.currentMediaInformation?.duration, duration > 0 {
+            Slider(
+                value: Binding(
+                    get: { min(scrubTime ?? store.currentPlaybackTime ?? 0, duration) },
+                    set: { scrubTime = $0 }
+                ),
+                in: 0...duration
+            ) { editing in
+                if !editing, let time = scrubTime {
+                    store.send(.seek(time))
+                    scrubTime = nil
+                }
+            }
+            .disabled(store.currentSong == nil)
+        } else {
+            Slider(value: .constant(0), in: 0...1)
+                .disabled(true)
+        }
+    }
+
     private var bottomView: some View {
         VStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
@@ -399,7 +580,7 @@ struct ListenView: View {
                     Text("Loading song")
                         .redacted(reason: .placeholder)
                 }
-                
+
                 if let artistName = store.currentMediaInformation?.artistName {
                     Label(artistName, systemImage: "person.crop.square")
                 } else {
@@ -407,7 +588,7 @@ struct ListenView: View {
                         .font(.title3)
                         .redacted(reason: .placeholder)
                 }
-                
+
                 if let albumName = store.currentMediaInformation?.albumName {
                     Label(albumName, systemImage: "rectangle.stack.badge.play")
                         .font(.subheadline)
@@ -416,14 +597,14 @@ struct ListenView: View {
                         .font(.subheadline)
                         .redacted(reason: .placeholder)
                 }
-                
+
                 if let releaseDate = store.currentMediaInformation?.releaseDate {
                     Text(releaseDate.formatted(date: .numeric, time: .omitted))
                 } else {
                     Text("Loading date")
                         .redacted(reason: .placeholder)
                 }
-                
+
                 if let genres = store.currentMediaInformation?.genreNames {
                     ScrollView(.horizontal) {
                         HStack {
@@ -440,14 +621,9 @@ struct ListenView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .multilineTextAlignment(.leading)
-            
-            if let duration = store.currentMediaInformation?.duration, let time = store.currentPlaybackTime {
-                ProgressView(value: time, total: duration)
-                    .animation(.easeInOut(duration: duration - time), value: time)
-            } else {
-                ProgressView(value: 0, total: 1)
-            }
-            
+
+            progressSlider
+
             HStack(spacing: 40) {
                 // This is just for layout purposes
                 Button {
@@ -458,16 +634,9 @@ struct ListenView: View {
                 .buttonStyle(.plain)
                 .opacity(0)
                 .disabled(store.isLoading)
-                
-                // TODO: Fix me?
+
                 Button {
-                    if !store.mediaPlayer.isPlaying,
-                       let media = store.currentMediaInformation,
-                       let id = media.musicId {
-                        store.send(.mediaPlayer(.playMedia(id)))
-                    } else {
-                        store.send(.mediaPlayer(.pause))
-                    }
+                    store.send(.playButtonTapped)
                 } label: {
                     if store.mediaPlayer.isPlaying {
                         Image(systemName: "pause.fill")
@@ -479,9 +648,9 @@ struct ListenView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(store.isLoading)
-                
+
                 Button {
-                    store.send(.refreshSong)
+                    store.send(.skipButtonTapped)
                 } label: {
                     Image(systemName: "forward.fill")
                         .font(.largeTitle)
@@ -500,4 +669,3 @@ struct ListenView: View {
         ListenFeature()
     }))
 }
-

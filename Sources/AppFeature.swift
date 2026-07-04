@@ -56,7 +56,7 @@ struct AppFeature {
             switch action {
             case .onAppear:
                 return .merge([
-                    .send(.listen(.smallCharacterModel(.load))),
+                    .send(.listen(.loadModel)),
                     .run { send in
                         let result = await MusicAuthorization.request()
                         await send(.listen(.authorized(result)))

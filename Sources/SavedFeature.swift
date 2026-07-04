@@ -51,11 +51,7 @@ struct SavedView: View {
     
     @Bindable var store: StoreOf<SavedFeature>
     
-    @Query var mediaQuery: [Media] {
-        didSet {
-            store.send(.queryChangedMedia(self.savedMedia))
-        }
-    }
+    @Query var mediaQuery: [Media]
     
     var body: some View {
         NavigationStack {
