@@ -6,37 +6,22 @@ import ComposableArchitecture
 
 @Reducer
 struct SettingsFeature {
-    
-    enum SearchType: LocalizedStringKey, CaseIterable, Hashable {
-        case album = "Album"
-        case song = "Song"
-        case artist = "Artist"
-    }
-    
-    enum RandomMode: LocalizedStringKey, CaseIterable, Hashable {
-        case probable = "Probable"
-        case chaotic = "Chaotic"
-    }
-    
+
     @ObservableState
     struct State: Equatable {
-        var searchType: SearchType = .song
-        var randomMode: RandomMode = .probable
+        var autoPlay: Bool = UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
     }
-    
+
     enum Action {
-        case searchTypeChanged(SearchType)
-        case randomModeChanged(RandomMode)
+        case toggleAutoPlay(Bool)
     }
-    
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .searchTypeChanged(let searchType):
-                state.searchType = searchType
-                return .none
-            case .randomModeChanged(let randomMode):
-                state.randomMode = randomMode
+            case .toggleAutoPlay(let autoPlay):
+                state.autoPlay = autoPlay
+                UserDefaults.standard.set(autoPlay, forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
                 return .none
             }
         }
@@ -63,25 +48,7 @@ struct SettingsView: View {
     
     var form: some View {
         Form {
-            Picker("Search Type", selection: $store.searchType.sending(\.searchTypeChanged)) {
-                ForEach(SettingsFeature.SearchType.allCases, id: \.self) { type in
-                    Text(type.rawValue)
-                        .tag(type)
-                }
-            }
-            
-            Picker("Random Mode", selection: $store.randomMode.sending(\.randomModeChanged)) {
-                ForEach(SettingsFeature.RandomMode.allCases, id: \.self) { mode in
-                    Text(mode.rawValue)
-                        .tag(mode)
-                }
-            }
-            
-            Toggle(isOn: .init(get: {
-                UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
-            }, set: { newValue in
-                UserDefaults.standard.set(newValue, forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
-            })) {
+            Toggle(isOn: $store.autoPlay.sending(\.toggleAutoPlay)) {
                 Text("Auto Play")
             }
         }

@@ -27,9 +27,10 @@ struct ListenFeature {
         var isFetchingFirstSong: Bool = false
         var currentMediaInformation: Media?
         var currentSong: Song?
+        var errorMessage: String?
 
-        // Pre-fetch pipeline
-        var nextUp: QueuedSong?
+        // Pre-fetch pipeline: resolved songs waiting to play, oldest first.
+        var upNext: [QueuedSong] = []
         var isPrefetching: Bool = false
         var pendingAdvance: Bool = false
         var pendingPlay: Bool = false
@@ -67,9 +68,16 @@ struct ListenFeature {
         case advanceToNextSong
         case songFinished
 
+        case playerEntryChanged(MusicItemID?)
+
         case authorized(MusicAuthorization.Status)
         case playbackStatusChanged(MusicPlayer.PlaybackStatus)
     }
+
+    /// How many songs to keep resolved (and queued in the system player)
+    /// ahead of the current one, so playback can continue while the app
+    /// is suspended in the background.
+    static let lookaheadCount = 3
 
     enum CancelID {
         case updateTimer
@@ -102,6 +110,14 @@ struct ListenFeature {
                 let currentTime = musicService.playbackTime()
                 state.currentPlaybackTime = currentTime
 
+                // If the system player advanced to a queued entry on its own
+                // (e.g. while the app was in the background), catch up first.
+                if let entryID = musicService.currentEntryID(),
+                   entryID != state.currentSong?.id,
+                   state.upNext.contains(where: { $0.song.id == entryID }) {
+                    return .send(.playerEntryChanged(entryID))
+                }
+
                 // Fallback end-of-song detection: the player can reset its
                 // playback time to 0 when the queue finishes, so compare the
                 // last observed time against the duration as well.
@@ -130,13 +146,17 @@ struct ListenFeature {
                 state.model = model
                 return .send(.attemptToLoadFirstSong)
             case .modelLoadFailed(let message):
-                fatalError(message)
+                state.isLoading = false
+                state.errorMessage = "Failed to load the song model: \(message)"
+                return .none
             case .authorized(let status):
                 switch status {
                 case .authorized:
                     return .send(.attemptToLoadFirstSong)
                 default:
-                    fatalError()
+                    state.isLoading = false
+                    state.errorMessage = "MusicX needs access to Apple Music to discover songs. You can grant access in Settings."
+                    return .none
                 }
             case .openSongURL:
                 if let url = state.currentMediaInformation?.storeURL {
@@ -147,20 +167,12 @@ struct ListenFeature {
                     return .none
                 }
             case .saveToFavoritesToggled:
-                guard let mediaId = state.currentMediaInformation?.musicId else { return .none }
+                // `Media` is a reference type that was already inserted into
+                // the shared context, so toggle it directly and save.
+                guard let media = state.currentMediaInformation else { return .none }
                 @Dependency(\.database) var database
-                let context = database.context()
-
-                // Fetch the persistent object and modify it
-                if let persistentMedia = try? context.fetch(
-                    FetchDescriptor<Media>(predicate: #Predicate { $0.musicId == mediaId })
-                ).first {
-                    persistentMedia.bookmarked.toggle()
-                    try? context.save()
-                }
-
-                // Update the local state to reflect the change
-                state.currentMediaInformation?.bookmarked.toggle()
+                media.bookmarked.toggle()
+                try? database.context().save()
                 return .none
             case .playButtonTapped:
                 if state.mediaPlayer.isPlaying {
@@ -173,13 +185,13 @@ struct ListenFeature {
                     return .send(.mediaPlayer(.resume))
                 }
 
-                return .send(.mediaPlayer(.playSong(song)))
+                return .send(.mediaPlayer(.play([song] + state.upNext.map(\.song))))
             case .skipButtonTapped:
                 guard state.currentMediaInformation != nil else { return .none }
 
                 state.pendingPlay = state.mediaPlayer.isPlaying || autoPlayEnabled
 
-                if state.nextUp != nil {
+                if !state.upNext.isEmpty {
                     return .send(.advanceToNextSong)
                 }
 
@@ -193,7 +205,7 @@ struct ListenFeature {
 
                 state.pendingPlay = true
 
-                if state.nextUp != nil {
+                if !state.upNext.isEmpty {
                     return .send(.advanceToNextSong)
                 }
 
@@ -214,6 +226,7 @@ struct ListenFeature {
 
                 state.isFetchingFirstSong = true
                 state.isLoading = true
+                state.errorMessage = nil
                 return .run { send in
                     do {
                         let queued = try await findSong(model: model)
@@ -233,19 +246,18 @@ struct ListenFeature {
 
                 var effects: [Effect<Action>] = [.send(.prefetchNextSong)]
                 if autoPlayEnabled {
-                    effects.insert(.send(.mediaPlayer(.playSong(queued.song))), at: 0)
+                    effects.insert(.send(.mediaPlayer(.play([queued.song]))), at: 0)
                 }
                 return .merge(effects)
             case .firstSongFailed:
                 state.isFetchingFirstSong = false
-                return .run { send in
-                    let result = await MusicAuthorization.request()
-                    await send(.authorized(result))
-                }
+                state.isLoading = false
+                state.errorMessage = "Couldn't find a song to play. Check your connection and try again."
+                return .none
             case .prefetchNextSong:
                 guard let model = state.model,
                       !state.isPrefetching,
-                      state.nextUp == nil
+                      state.upNext.count < Self.lookaheadCount
                 else {
                     return .none
                 }
@@ -261,13 +273,21 @@ struct ListenFeature {
                 }
             case .nextSongPrefetched(let queued):
                 state.isPrefetching = false
-                state.nextUp = queued
+                state.upNext.append(queued)
 
                 if state.pendingAdvance {
                     return .send(.advanceToNextSong)
                 }
 
-                return .none
+                // Keep filling the lookahead, and mirror it into the system
+                // player's queue (when the player is in sync with the UI) so
+                // playback continues while the app is suspended.
+                var effects: [Effect<Action>] = [.send(.prefetchNextSong)]
+                if state.mediaPlayer.queuedSongID == state.currentSong?.id,
+                   state.currentSong != nil {
+                    effects.append(.send(.mediaPlayer(.enqueue(queued.song))))
+                }
+                return .merge(effects)
             case .prefetchFailed(let message):
                 print("Failed to pre-fetch the next song: \(message)")
                 state.isPrefetching = false
@@ -276,9 +296,9 @@ struct ListenFeature {
                 state.isLoading = false
                 return .none
             case .advanceToNextSong:
-                guard let next = state.nextUp else { return .none }
+                guard !state.upNext.isEmpty else { return .none }
 
-                state.nextUp = nil
+                let next = state.upNext.removeFirst()
                 state.pendingAdvance = false
                 state.isLoading = false
                 state.currentMediaInformation = next.media
@@ -291,10 +311,55 @@ struct ListenFeature {
 
                 var effects: [Effect<Action>] = [.send(.prefetchNextSong)]
                 if play {
-                    effects.insert(.send(.mediaPlayer(.playSong(next.song))), at: 0)
+                    effects.insert(.send(.mediaPlayer(.play([next.song] + state.upNext.map(\.song)))), at: 0)
+                }
+                return .merge(effects)
+            case .playerEntryChanged(let entryID):
+                // The system player advanced on its own — typically because a
+                // queued entry started while the app was suspended. Catch the
+                // app state up to whatever the player is on now.
+                guard let entryID,
+                      entryID != state.currentSong?.id,
+                      let index = state.upNext.firstIndex(where: { $0.song.id == entryID })
+                else {
+                    return .none
+                }
+
+                for played in state.upNext.prefix(index) {
+                    insertIntoHistory(played.media)
+                }
+
+                let current = state.upNext[index]
+                state.upNext.removeFirst(index + 1)
+                state.currentMediaInformation = current.media
+                state.currentSong = current.song
+                state.mediaPlayer.queuedSongID = current.song.id
+                state.currentPlaybackTime = musicService.playbackTime()
+                state.mediaPlayer.isPlaying = musicService.playbackStatus() == .playing
+                insertIntoHistory(current.media)
+
+                var effects: [Effect<Action>] = [.send(.prefetchNextSong)]
+
+                // If the player exhausted its queue while we were suspended,
+                // resume the auto-play chain from here.
+                let status = musicService.playbackStatus()
+                if autoPlayEnabled,
+                   status == .paused || status == .stopped,
+                   let duration = current.media.duration,
+                   musicService.playbackTime() >= duration - 2 {
+                    state.mediaPlayer.isPlaying = false
+                    effects.append(.send(.songFinished))
                 }
                 return .merge(effects)
             case .playbackStatusChanged(let status):
+                // If the system player advanced to a queued entry on its own,
+                // reconcile before interpreting the status change.
+                if let entryID = musicService.currentEntryID(),
+                   entryID != state.currentSong?.id,
+                   state.upNext.contains(where: { $0.song.id == entryID }) {
+                    return .send(.playerEntryChanged(entryID))
+                }
+
                 switch status {
                 case .playing:
                     state.mediaPlayer.isPlaying = true
@@ -382,6 +447,9 @@ struct ListenView: View {
 
     @Bindable var store: StoreOf<ListenFeature>
     @ObservedObject var state = ApplicationMusicPlayer.shared.state
+    @ObservedObject var queue = ApplicationMusicPlayer.shared.queue
+
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var scrubTime: TimeInterval?
 
@@ -392,6 +460,17 @@ struct ListenView: View {
                     albumArtPlaceholderView
                     ProgressView()
                         .controlSize(.large)
+                } else if let errorMessage = store.errorMessage {
+                    ContentUnavailableView {
+                        Label("Something Went Wrong", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text(errorMessage)
+                    } actions: {
+                        Button("Try Again") {
+                            store.send(.attemptToLoadFirstSong)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
                 } else if let mediaInformation = store.currentMediaInformation {
                     artworkView(media: mediaInformation)
                 }
@@ -451,6 +530,16 @@ struct ListenView: View {
         }
         .onChange(of: state.playbackStatus) { oldValue, newValue in
             store.send(.playbackStatusChanged(newValue))
+        }
+        .onChange(of: queue.currentEntry) { oldValue, newValue in
+            store.send(.playerEntryChanged(newValue?.item?.id))
+        }
+        .onChange(of: scenePhase) { oldValue, newValue in
+            // Re-sync with the system player after the app was suspended:
+            // it may have advanced through queued songs on its own.
+            if newValue == .active {
+                store.send(.playerEntryChanged(queue.currentEntry?.item?.id))
+            }
         }
         .onAppear {
             store.send(.onAppear)

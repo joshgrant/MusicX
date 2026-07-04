@@ -4,7 +4,9 @@ let project = Project(
     name: "MusicX",
     organizationName: "Joshua Grant",
     packages: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .branch("main")),
+        // Pinned to the revision that was resolved from `main` so release
+        // builds are reproducible.
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .revision("8631b5fbcc5c4ae3866474d431d64da3677df216")),
         .package(path: "../../Packages/SmallCharacterModel")
     ],
     targets: [
@@ -32,10 +34,15 @@ let project = Project(
                 "UILaunchScreen": .dictionary([
                     "UIColorName": "systemBackgroundColor"
                 ]),
-                "NSAppleMusicUsageDescription": "MusicX uses Apple Music to discover new songs"
+                "NSAppleMusicUsageDescription": "MusicX uses Apple Music to discover new songs",
+                "LSApplicationCategoryType": "public.app-category.music"
             ]),
             sources: ["Sources/**"],
-            resources: ["Resources/**"],
+            resources: [
+                // song-titles.txt is only the training source for the
+                // pre-trained model; the app loads song-titles_3.media.
+                .glob(pattern: "Resources/**", excluding: ["Resources/song-titles.txt"])
+            ],
             dependencies: [
                 .package(product: "ComposableArchitecture"),
                 .package(product: "SmallCharacterModel")

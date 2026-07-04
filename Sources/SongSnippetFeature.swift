@@ -40,6 +40,7 @@ struct SongSnippetFeature {
                 return .run { [media = state.media] send in
                     await MainActor.run {
                         media.bookmarked = bookmarked
+                        try? media.modelContext?.save()
                     }
                 }
             }

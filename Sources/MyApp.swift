@@ -21,19 +21,25 @@ struct MyApp: App {
     }()
     
     static let configurationId: UUID? = {
-        if UserDefaults.standard.value(forKey: Constants.UserDefaultsKey.configurationId.rawValue) == nil {
+        if UserDefaults.standard.string(forKey: Constants.UserDefaultsKey.configurationId.rawValue) == nil {
             UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKey.autoPlay.rawValue)
             UserDefaults.standard.set(UUID().uuidString, forKey: Constants.UserDefaultsKey.configurationId.rawValue)
         }
-        
-        return UserDefaults.standard.value(forKey: Constants.UserDefaultsKey.configurationId.rawValue) as? UUID
+
+        return UserDefaults.standard.string(forKey: Constants.UserDefaultsKey.configurationId.rawValue)
+            .flatMap(UUID.init(uuidString:))
     }()
-    
+
     static var store = StoreOf<AppFeature>(initialState: AppFeature.State()) {
         AppFeature()
         //            ._printChanges()
     }
-    
+
+    init() {
+        // Runs the first-launch configuration (seeds Auto Play to on).
+        _ = MyApp.configurationId
+    }
+
     var body: some Scene {
         WindowGroup {
             AppView(store: MyApp.store)

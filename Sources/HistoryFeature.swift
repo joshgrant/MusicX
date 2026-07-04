@@ -39,13 +39,16 @@ struct HistoryFeature {
             case .delete(let media):
                 return .run { send in
                     await MainActor.run {
-                        database.context().delete(media)
+                        let context = database.context()
+                        context.delete(media)
+                        try? context.save()
                     }
                 }
             case .toggleBookmark(let media):
                 return .run { send in
                     await MainActor.run {
                         media.bookmarked.toggle()
+                        try? media.modelContext?.save()
                     }
                 }
             }
