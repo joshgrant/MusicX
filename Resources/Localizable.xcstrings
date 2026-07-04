@@ -1,0 +1,386 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Auto Play" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture automatique"
+          }
+        }
+      }
+    },
+    "Bookmark a song in Discover and it'll show up here." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistre un titre dans Découvrir et il apparaîtra ici."
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        }
+      }
+    },
+    "Clear" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer"
+          }
+        }
+      }
+    },
+    "Clear History" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer l’historique"
+          }
+        }
+      }
+    },
+    "Clear History?" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer l’historique ?"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer"
+          }
+        }
+      }
+    },
+    "Couldn't find a song to play. Check your connection and try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de trouver un titre à lire. Vérifie ta connexion et réessaie."
+          }
+        }
+      }
+    },
+    "Discover" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Découvrir"
+          }
+        }
+      }
+    },
+    "Discover More Music" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Découvrir plus de musique"
+          }
+        }
+      }
+    },
+    "Discover songs you would never think to search for." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Découvre des titres que tu n’aurais jamais pensé à chercher."
+          }
+        }
+      }
+    },
+    "Every discovery lands in your history automatically, and bookmarks keep the keepers." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque découverte s’ajoute à ton historique, et tu enregistres celles à garder."
+          }
+        }
+      }
+    },
+    "Every song you play in Discover lands here." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque titre que tu écoutes dans Découvrir apparaît ici."
+          }
+        }
+      }
+    },
+    "Failed to load the song model: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du chargement du modèle musical : %@"
+          }
+        }
+      }
+    },
+    "Hidden Genres" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Genres masqués"
+          }
+        }
+      }
+    },
+    "Hide" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer"
+          }
+        }
+      }
+    },
+    "Hide this genre?" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer ce genre ?"
+          }
+        }
+      }
+    },
+    "History" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historique"
+          }
+        }
+      }
+    },
+    "Loading artist" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement de l’artiste"
+          }
+        }
+      }
+    },
+    "Loading song" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement du titre"
+          }
+        }
+      }
+    },
+    "MusicX dreams up search terms on its own and surfaces songs from every corner of Apple Music." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MusicX invente ses propres termes de recherche et déniche des titres aux quatre coins d’Apple Music."
+          }
+        }
+      }
+    },
+    "MusicX needs access to Apple Music to discover songs. You can grant access in Settings." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MusicX a besoin d’accéder à Apple Music pour découvrir des titres. Tu peux autoriser l’accès dans Réglages."
+          }
+        }
+      }
+    },
+    "Never Lose a Find" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne perds aucune trouvaille"
+          }
+        }
+      }
+    },
+    "No hidden genres yet. Tap a genre tag in Discover to hide it." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun genre masqué pour l’instant. Touche un genre dans Découvrir pour le masquer."
+          }
+        }
+      }
+    },
+    "No History Yet" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun historique"
+          }
+        }
+      }
+    },
+    "No Saved Songs" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun titre enregistré"
+          }
+        }
+      }
+    },
+    "Roll the Dice" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lance les dés"
+          }
+        }
+      }
+    },
+    "Saved" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrés"
+          }
+        }
+      }
+    },
+    "Send your favorite discoveries to friends straight from the player." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoie tes découvertes préférées à tes amis directement depuis le lecteur."
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages"
+          }
+        }
+      }
+    },
+    "Share the Gems" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partage tes pépites"
+          }
+        }
+      }
+    },
+    "Something Went Wrong" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une erreur est survenue"
+          }
+        }
+      }
+    },
+    "Songs in these genres are skipped. Swipe left to unhide one." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les titres de ces genres sont ignorés. Balaie vers la gauche pour en réafficher un."
+          }
+        }
+      }
+    },
+    "Songs tagged %@ will be skipped. You can unhide it anytime in Settings." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les titres du genre %@ seront ignorés. Tu peux le réafficher à tout moment dans Réglages."
+          }
+        }
+      }
+    },
+    "This removes every song from your history. Saved songs are kept." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ceci retire tous les titres de ton historique. Les titres enregistrés sont conservés."
+          }
+        }
+      }
+    },
+    "Try Again" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer"
+          }
+        }
+      }
+    },
+    "Unhide" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réafficher"
+          }
+        }
+      }
+    },
+    "Welcome to MusicX" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenue dans MusicX"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -156,7 +156,7 @@ struct ListenFeature {
                 return .send(.attemptToLoadFirstSong)
             case .modelLoadFailed(let message):
                 state.isLoading = false
-                state.errorMessage = "Failed to load the song model: \(message)"
+                state.errorMessage = String(localized: "Failed to load the song model: \(message)")
                 return .none
             case .authorized(let status):
                 switch status {
@@ -164,7 +164,7 @@ struct ListenFeature {
                     return .send(.attemptToLoadFirstSong)
                 default:
                     state.isLoading = false
-                    state.errorMessage = "MusicX needs access to Apple Music to discover songs. You can grant access in Settings."
+                    state.errorMessage = String(localized: "MusicX needs access to Apple Music to discover songs. You can grant access in Settings.")
                     return .none
                 }
             case .openSongURL:
@@ -296,7 +296,7 @@ struct ListenFeature {
             case .firstSongFailed:
                 state.isFetchingFirstSong = false
                 state.isLoading = false
-                state.errorMessage = "Couldn't find a song to play. Check your connection and try again."
+                state.errorMessage = String(localized: "Couldn't find a song to play. Check your connection and try again.")
                 return .none
             case .prefetchNextSong:
                 guard let model = state.model,

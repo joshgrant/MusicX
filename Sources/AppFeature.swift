@@ -19,6 +19,15 @@ struct AppFeature {
     enum FilterPickerOption: String {
         case history = "History"
         case saved = "Saved"
+
+        /// Localized label for the current selection. `rawValue` is verbatim,
+        /// so the picker label has to go through `LocalizedStringKey`.
+        var titleKey: LocalizedStringKey {
+            switch self {
+            case .history: return "History"
+            case .saved: return "Saved"
+            }
+        }
     }
     
     @ObservableState
@@ -162,7 +171,7 @@ struct AppView: View {
                             Text("Saved")
                                 .tag(AppFeature.FilterPickerOption.saved)
                         } label: {
-                            Text(store.selectedFilterPickerOption.rawValue)
+                            Text(store.selectedFilterPickerOption.titleKey)
                                 .font(.headline)
                         }
                     }

@@ -3,6 +3,10 @@ import ProjectDescription
 let project = Project(
     name: "MusicX",
     organizationName: "Joshua Grant",
+    // French ships as a String Catalog (Resources/*.xcstrings). Tuist only
+    // infers regions from .lproj folders, so declare `fr` explicitly or the
+    // catalog's French never gets compiled into the app bundle.
+    options: .options(defaultKnownRegions: ["en", "fr"], developmentRegion: "en"),
     packages: [
         // Pinned to the revision that was resolved from `main` so release
         // builds are reproducible.
