@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Fail the post-clone step immediately if any command fails. Without this,
+# a failed `tuist generate` is swallowed and the build dies later with the
+# misleading "A scheme called MusicX does not exist" error.
+set -e
+
 # Mise installation taken from https://mise.jdx.dev/continuous-integration.html#xcode-cloud
 curl https://mise.run | sh # Install Mise
 export PATH="$HOME/.local/bin:$PATH"

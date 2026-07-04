@@ -11,7 +11,10 @@ let project = Project(
         // Pinned to the revision that was resolved from `main` so release
         // builds are reproducible.
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .revision("8631b5fbcc5c4ae3866474d431d64da3677df216")),
-        .package(path: "../../Packages/SmallCharacterModel")
+        // Pinned to the no-TCA rewrite. This commit must exist on GitHub for
+        // Xcode Cloud to resolve it — a local path dependency cannot work
+        // there because ../../Packages is outside the repository checkout.
+        .package(url: "https://github.com/joshgrant/SmallCharacterModel.git", .revision("b917c466afb58eb2ba6e68e63abd58b9a86eb1e1"))
     ],
     targets: [
         .target(
