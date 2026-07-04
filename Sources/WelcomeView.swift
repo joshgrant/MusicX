@@ -74,7 +74,7 @@ struct WelcomeView: View {
             .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
     }
 
-    private func featureRow(symbol: String, title: String, description: String) -> some View {
+    private func featureRow(symbol: String, title: LocalizedStringKey, description: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 16) {
             Image(systemName: symbol)
                 .font(.title2.weight(.medium))
