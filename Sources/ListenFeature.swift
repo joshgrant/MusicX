@@ -38,6 +38,8 @@ struct ListenFeature {
         var currentPlaybackTime: TimeInterval?
 
         var musicSubscription: MusicSubscription?
+
+        @Presents var alert: AlertState<Action.Alert>?
     }
 
     enum Action {
@@ -52,6 +54,9 @@ struct ListenFeature {
 
         case openSongURL
         case saveToFavoritesToggled
+
+        case genreTapped(String)
+        case alert(PresentationAction<Alert>)
 
         case playButtonTapped
         case skipButtonTapped
@@ -72,6 +77,10 @@ struct ListenFeature {
 
         case authorized(MusicAuthorization.Status)
         case playbackStatusChanged(MusicPlayer.PlaybackStatus)
+
+        enum Alert: Equatable {
+            case hideGenreConfirmed(String)
+        }
     }
 
     /// How many songs to keep resolved (and queued in the system player)
@@ -166,6 +175,41 @@ struct ListenFeature {
                 } else {
                     return .none
                 }
+            case .genreTapped(let genre):
+                state.alert = AlertState {
+                    TextState("Hide this genre?")
+                } actions: {
+                    ButtonState(role: .destructive, action: .hideGenreConfirmed(genre)) {
+                        TextState("Hide")
+                    }
+                    ButtonState(role: .cancel) {
+                        TextState("Cancel")
+                    }
+                } message: {
+                    TextState("Songs tagged \(genre) will be skipped. You can unhide it anytime in Settings.")
+                }
+                return .none
+            case .alert(.presented(.hideGenreConfirmed(let genre))):
+                var hidden = UserDefaults.standard.hiddenGenres
+                if !hidden.contains(genre) {
+                    hidden.append(genre)
+                    UserDefaults.standard.hiddenGenres = hidden
+                }
+
+                // Drop pre-fetched songs that match the newly hidden genre —
+                // from the app's lookahead and from the system player's queue.
+                // The current song keeps playing.
+                let hiddenSet = Set(hidden.map { $0.lowercased() })
+                let purged = state.upNext.filter { Self.matchesHiddenGenre($0.media, hidden: hiddenSet) }
+                guard !purged.isEmpty else { return .none }
+
+                state.upNext.removeAll { Self.matchesHiddenGenre($0.media, hidden: hiddenSet) }
+                return .merge(
+                    .send(.mediaPlayer(.removeFromQueue(purged.map(\.song.id)))),
+                    .send(.prefetchNextSong)
+                )
+            case .alert:
+                return .none
             case .saveToFavoritesToggled:
                 // `Media` is a reference type that was already inserted into
                 // the shared context, so toggle it directly and save.
@@ -189,7 +233,9 @@ struct ListenFeature {
             case .skipButtonTapped:
                 guard state.currentMediaInformation != nil else { return .none }
 
-                state.pendingPlay = state.mediaPlayer.isPlaying || autoPlayEnabled
+                // Keep playing through a skip only if music was already
+                // playing; a skip never starts playback by itself.
+                state.pendingPlay = state.mediaPlayer.isPlaying
 
                 if !state.upNext.isEmpty {
                     return .send(.advanceToNextSong)
@@ -244,11 +290,9 @@ struct ListenFeature {
                 state.currentPlaybackTime = 0
                 insertIntoHistory(queued.media)
 
-                var effects: [Effect<Action>] = [.send(.prefetchNextSong)]
-                if autoPlayEnabled {
-                    effects.insert(.send(.mediaPlayer(.play([queued.song]))), at: 0)
-                }
-                return .merge(effects)
+                // Playback never starts on its own at launch — the user has
+                // to tap play. Auto Play only keeps an active session going.
+                return .send(.prefetchNextSong)
             case .firstSongFailed:
                 state.isFetchingFirstSong = false
                 state.isLoading = false
@@ -389,44 +433,59 @@ struct ListenFeature {
                 return .none
             }
         }
+        .ifLet(\.$alert, action: \.alert)
 
         Scope(state: \.mediaPlayer, action: \.mediaPlayer) {
             MediaPlayerFeature()
         }
     }
 
+    static func matchesHiddenGenre(_ media: Media, hidden: Set<String>) -> Bool {
+        (media.genreNames ?? []).contains { hidden.contains($0.lowercased()) }
+    }
+
     /// Generates progressively longer words until the catalog search comes up
     /// empty, then resolves the last successful match into a playable `Song`.
+    /// Songs in a hidden genre are skipped; a few fresh words are tried
+    /// before giving up.
     private func findSong(model: Model) async throws -> QueuedSong {
-        var word = try SCMFunctions.generate(prefix: "", length: 5, model: model)
-        var candidate: Media?
+        let hidden = Set(UserDefaults.standard.hiddenGenres.map { $0.lowercased() })
 
-        while true {
-            let results = try await musicService.search(word)
-            guard let element = results.randomElement() else { break }
+        for _ in 0..<5 {
+            var word = try SCMFunctions.generate(prefix: "", length: 5, model: model)
+            var candidate: Media?
 
-            candidate = element
+            while true {
+                let results = try await musicService.search(word)
+                guard let element = results.randomElement() else { break }
 
-            guard let longer = try? SCMFunctions.generate(
-                prefix: word,
-                length: word.count + 1,
-                model: model),
-                  longer != word
-            else { break }
+                candidate = element
 
-            word = longer
+                guard let longer = try? SCMFunctions.generate(
+                    prefix: word,
+                    length: word.count + 1,
+                    model: model),
+                      longer != word
+                else { break }
+
+                word = longer
+            }
+
+            guard let media = candidate, let id = media.musicId else {
+                throw SongDiscoveryError.noResults
+            }
+
+            if Self.matchesHiddenGenre(media, hidden: hidden) { continue }
+
+            let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: id)
+            guard let song = try await request.response().items.first else {
+                throw SongDiscoveryError.songUnavailable
+            }
+
+            return QueuedSong(media: media, song: song)
         }
 
-        guard let media = candidate, let id = media.musicId else {
-            throw SongDiscoveryError.noResults
-        }
-
-        let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: id)
-        guard let song = try await request.response().items.first else {
-            throw SongDiscoveryError.songUnavailable
-        }
-
-        return QueuedSong(media: media, song: song)
+        throw SongDiscoveryError.noResults
     }
 
     private func insertIntoHistory(_ media: Media) {
@@ -480,7 +539,7 @@ struct ListenView: View {
             .safeAreaInset(edge: .bottom, content: {
                 bottomView
             })
-            .navigationTitle("Listen")
+            .navigationTitle("Discover")
             .toolbar {
                 ToolbarItem {
                     Button {
@@ -496,32 +555,6 @@ struct ListenView: View {
                 }
 
                 ToolbarItem {
-                    if let media = store.currentMediaInformation,
-                       let url = media.storeURL {
-#if os(iOS)
-                        Button {
-                            Task {
-                                await shareTrack(media: media, url: url)
-                            }
-                        } label: {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                        }
-#else
-                        ShareLink(item: url, message: Text(shareText(for: media))) {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                        }
-#endif
-                    } else {
-                        Button {
-                            // Disabled state
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .disabled(true)
-                    }
-                }
-
-                ToolbarItem {
                     Button {
                         store.send(.openSongURL)
                     } label: {
@@ -534,6 +567,7 @@ struct ListenView: View {
         .refreshable {
             store.send(.skipButtonTapped)
         }
+        .alert($store.scope(state: \.alert, action: \.alert))
         .onChange(of: state.playbackStatus) { oldValue, newValue in
             store.send(.playbackStatusChanged(newValue))
         }
@@ -561,88 +595,10 @@ struct ListenView: View {
             .redacted(reason: .placeholder)
     }
 
-    private func shareText(for media: Media) -> String {
-        var components: [String] = []
-
-        if let songName = media.songName {
-            components.append(songName)
-        }
-
-        if let artistName = media.artistName {
-            components.append("by \(artistName)")
-        }
-
-        return components.joined(separator: " ")
-    }
-
-#if os(iOS)
-    @MainActor
-    private func shareTrack(media: Media, url: URL) async {
-        var itemsToShare: [Any] = []
-
-        let textToShare = """
-        I found this track with MusicX:
-
-        \(shareText(for: media))
-
-        Listen on Apple Music:
-        \(url.absoluteString)
-        """
-
-        // Add the combined text as a single item
-        itemsToShare.append(textToShare)
-
-        // Download and add the album artwork if available
-        if let artworkURL = media.albumArtURL {
-            do {
-                let (imageData, _) = try await URLSession.shared.data(from: artworkURL)
-                if let image = UIImage(data: imageData) {
-                    itemsToShare.append(image)
-                }
-            } catch {
-                print("Failed to download album artwork: \(error)")
-            }
-        }
-
-        // Present the share sheet
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first,
-              let rootViewController = window.rootViewController else {
-            return
-        }
-
-        let activityViewController = UIActivityViewController(
-            activityItems: itemsToShare,
-            applicationActivities: nil
-        )
-
-        // For iPad support
-        if let popoverController = activityViewController.popoverPresentationController {
-            popoverController.sourceView = rootViewController.view
-            popoverController.sourceRect = CGRect(
-                x: rootViewController.view.bounds.midX,
-                y: rootViewController.view.bounds.midY,
-                width: 0,
-                height: 0
-            )
-            popoverController.permittedArrowDirections = []
-        }
-
-        rootViewController.present(activityViewController, animated: true)
-    }
-#endif
-
     @ViewBuilder
     private func artworkView(media: Media) -> some View {
-        AsyncImage(url: media.albumArtURL) { image in
-            image
-                .resizable()
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .aspectRatio(1, contentMode: .fit)
-        } placeholder: {
-            albumArtPlaceholderView
-        }
-        .frame(maxWidth: 512, maxHeight: 512)
+        AlbumArtworkView(url: media.albumArtURL)
+            .frame(maxWidth: 512, maxHeight: 512)
     }
 
     @ViewBuilder
@@ -667,92 +623,121 @@ struct ListenView: View {
         }
     }
 
-    private var bottomView: some View {
-        VStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                if let songName = store.currentMediaInformation?.songName {
-                    Label(songName, systemImage: "music.note")
-                        .font(.title3)
-                } else {
-                    Text("Loading song")
-                        .redacted(reason: .placeholder)
-                }
+    private var songInfoView: some View {
+        VStack(spacing: 4) {
+            if let songName = store.currentMediaInformation?.songName {
+                Text(songName)
+                    .font(.title.bold())
+                    .multilineTextAlignment(.center)
+            } else {
+                Text("Loading song")
+                    .font(.title.bold())
+                    .redacted(reason: .placeholder)
+            }
 
-                if let artistName = store.currentMediaInformation?.artistName {
-                    Label(artistName, systemImage: "person.crop.square")
-                } else {
-                    Text("Loading artist")
-                        .font(.title3)
-                        .redacted(reason: .placeholder)
-                }
+            let subtitle = [
+                store.currentMediaInformation?.artistName,
+                store.currentMediaInformation?.albumName
+            ].compactMap(\.self).joined(separator: " – ")
 
-                if let albumName = store.currentMediaInformation?.albumName {
-                    Label(albumName, systemImage: "rectangle.stack.badge.play")
-                        .font(.subheadline)
-                } else {
-                    Text("Loading album")
-                        .font(.subheadline)
-                        .redacted(reason: .placeholder)
-                }
+            if !subtitle.isEmpty {
+                MarqueeText(text: subtitle, font: .title2)
+            } else {
+                Text("Loading artist")
+                    .font(.title2)
+                    .redacted(reason: .placeholder)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
 
-                if let releaseDate = store.currentMediaInformation?.releaseDate {
-                    Text(releaseDate.formatted(date: .numeric, time: .omitted))
-                } else {
-                    Text("Loading date")
-                        .redacted(reason: .placeholder)
-                }
-
-                if let genres = store.currentMediaInformation?.genreNames {
-                    ScrollView(.horizontal) {
-                        HStack {
-                            ForEach(genres, id: \.self) {
-                                Text($0)
-                            }
+    @ViewBuilder
+    private var genrePillsView: some View {
+        // "Music" is Apple's catch-all genre on nearly every song — not
+        // useful as a pill, and hiding it would hide everything.
+        let genres = (store.currentMediaInformation?.genreNames ?? []).filter { $0 != "Music" }
+        if !genres.isEmpty {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(genres, id: \.self) { genre in
+                        Button {
+                            store.send(.genreTapped(genre))
+                        } label: {
+                            Text(genre)
+                                .font(.body)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .background(pillBackground, in: Capsule())
                         }
+                        .buttonStyle(.plain)
                     }
-                    .scrollIndicators(.hidden)
-                } else {
-                    Text("Loading genres")
-                        .redacted(reason: .placeholder)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .multilineTextAlignment(.leading)
+            .scrollIndicators(.hidden)
+            .defaultScrollAnchor(.center)
+        }
+    }
 
-            progressSlider
+    private var pillBackground: Color {
+#if os(iOS)
+        Color(.secondarySystemBackground)
+#else
+        Color(nsColor: .controlBackgroundColor)
+#endif
+    }
 
-            HStack(spacing: 40) {
-                // This is just for layout purposes
-                Button {
-                } label: {
-                    Image(systemName: "forward.fill")
-                        .font(.largeTitle)
-                }
-                .buttonStyle(.plain)
-                .opacity(0)
-                .disabled(store.isLoading)
+    private var timestampsView: some View {
+        let duration = store.currentMediaInformation?.duration ?? 0
+        let elapsed = min(scrubTime ?? store.currentPlaybackTime ?? 0, duration)
+
+        return HStack {
+            Text(timeString(elapsed))
+            Spacer()
+            Text("-" + timeString(max(duration - elapsed, 0)))
+        }
+        .font(.footnote.monospacedDigit())
+    }
+
+    private func timeString(_ interval: TimeInterval) -> String {
+        Duration.seconds(max(interval, 0)).formatted(.time(pattern: .minuteSecond))
+    }
+
+    private var bottomView: some View {
+        VStack(spacing: 12) {
+            songInfoView
+            genrePillsView
+
+            VStack(spacing: 4) {
+                timestampsView
+                progressSlider
+            }
+
+            HStack(spacing: 20) {
+                AirPlayButton()
+                    .frame(width: 44, height: 44)
+                    .glassEffect(.regular.interactive(), in: Circle())
 
                 Button {
                     store.send(.playButtonTapped)
                 } label: {
-                    if store.mediaPlayer.isPlaying {
-                        Image(systemName: "pause.fill")
-                            .font(.largeTitle)
-                    } else {
-                        Image(systemName: "play.fill")
-                            .font(.largeTitle)
-                    }
+                    Image(systemName: store.mediaPlayer.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                        .frame(width: 100, height: 44)
                 }
                 .buttonStyle(.plain)
+                .glassEffect(.regular.tint(.accentColor).interactive(), in: Capsule())
                 .disabled(store.isLoading)
 
                 Button {
                     store.send(.skipButtonTapped)
                 } label: {
                     Image(systemName: "forward.fill")
-                        .font(.largeTitle)
+                        .font(.title2)
+                        .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
+                .glassEffect(.regular.interactive(), in: Circle())
                 .disabled(store.isLoading)
             }
         }

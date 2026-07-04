@@ -18,6 +18,8 @@ struct HistoryFeature {
         case gotFetchResults([Media])
         case delete(Media)
         case toggleBookmark(Media)
+        /// Handled by `AppFeature`, which switches to the Discover tab.
+        case discoverButtonTapped
     }
     
     @Dependency(\.database) var database
@@ -51,6 +53,8 @@ struct HistoryFeature {
                         try? media.modelContext?.save()
                     }
                 }
+            case .discoverButtonTapped:
+                return .none
             }
         }
     }
@@ -68,23 +72,29 @@ struct HistoryView: View {
     
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(snippets.reversed()) { state in
-                    SongSnippetView(store: .init(initialState: state, reducer: {
-                        SongSnippetFeature()
-                    }))
-                    .swipeActions {
-                        Button {
-                            store.send(.toggleBookmark(state.media), animation: .snappy)
-                        } label: {
-                            Label("", systemImage: "bookmark.fill")
-                        }
-                        .tint(Color.accentColor)
-                        
-                        Button(role: .destructive) {
-                            store.send(.delete(state.media), animation: .snappy)
-                        } label: {
-                            Label("", systemImage: "trash.fill")
+            Group {
+                if snippets.isEmpty {
+                    emptyStateView
+                } else {
+                    List {
+                        ForEach(snippets.reversed()) { state in
+                            SongSnippetView(store: .init(initialState: state, reducer: {
+                                SongSnippetFeature()
+                            }))
+                            .swipeActions {
+                                Button {
+                                    store.send(.toggleBookmark(state.media), animation: .snappy)
+                                } label: {
+                                    Label("", systemImage: "bookmark.fill")
+                                }
+                                .tint(Color.accentColor)
+
+                                Button(role: .destructive) {
+                                    store.send(.delete(state.media), animation: .snappy)
+                                } label: {
+                                    Label("", systemImage: "trash.fill")
+                                }
+                            }
                         }
                     }
                 }
@@ -99,6 +109,25 @@ struct HistoryView: View {
         }
     }
     
+    // On macOS this list doubles as the Saved view via the filter picker,
+    // so the empty state follows the active filter.
+    private var emptyStateView: some View {
+        ContentUnavailableView {
+            Label(
+                store.showingOnlyBookmarks ? "No Saved Songs" : "No History Yet",
+                systemImage: store.showingOnlyBookmarks ? "bookmark.fill" : "clock.fill")
+        } description: {
+            Text(store.showingOnlyBookmarks
+                 ? "Bookmark a song in Discover and it'll show up here."
+                 : "Every song you play in Discover lands here.")
+        } actions: {
+            Button("Discover More Music") {
+                store.send(.discoverButtonTapped)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+    }
+
     var snippets: IdentifiedArrayOf<SongSnippetFeature.State>  {
         if store.showingOnlyBookmarks {
             store

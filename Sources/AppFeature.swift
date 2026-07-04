@@ -28,6 +28,7 @@ struct AppFeature {
         
         var showingSettingsPopover: Bool = false
         var showingOnlyBookmarkedItems: Bool = false
+        var showingWelcome: Bool = false
         
         var listen = ListenFeature.State()
         var history = HistoryFeature.State()
@@ -42,7 +43,8 @@ struct AppFeature {
         case filterPickerOptionChanged(FilterPickerOption)
         
         case settingsButtonTapped(Bool)
-        
+        case setShowingWelcome(Bool)
+
         case listen(ListenFeature.Action)
         case history(HistoryFeature.Action)
         case saved(SavedFeature.Action)
@@ -55,6 +57,9 @@ struct AppFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
+                if !UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.hasSeenWelcome.rawValue) {
+                    state.showingWelcome = true
+                }
                 return .merge([
                     .send(.listen(.loadModel)),
                     .run { send in
@@ -67,6 +72,15 @@ struct AppFeature {
                 return .none
             case .settingsButtonTapped(let show):
                 state.showingSettingsPopover = show
+                return .none
+            case .setShowingWelcome(let show):
+                state.showingWelcome = show
+                if !show {
+                    UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKey.hasSeenWelcome.rawValue)
+                }
+                return .none
+            case .history(.discoverButtonTapped), .saved(.discoverButtonTapped):
+                state.selectedTab = .listen
                 return .none
             case .settings:
                 return .none
@@ -118,7 +132,7 @@ struct AppView: View {
             ListenView(store: store.scope(state: \.listen, action: \.listen))
                 .tabItem {
                     Image(systemName: "music.note")
-                    Text("Listen")
+                    Text("Discover")
                 }
                 .toolbar {
                     Button {
@@ -158,12 +172,18 @@ struct AppView: View {
         .onAppear {
             store.send(.onAppear)
         }
+        .sheet(isPresented: $store.showingWelcome.sending(\.setShowingWelcome)) {
+            WelcomeView {
+                store.send(.setShowingWelcome(false))
+            }
+            .interactiveDismissDisabled()
+        }
 #elseif os(iOS)
         TabView(selection: $store.selectedTab.sending(\.selectedTabChanged)) {
             ListenView(store: store.scope(state: \.listen, action: \.listen))
                 .tabItem {
                     Image(systemName: "music.note")
-                    Text("Listen")
+                    Text("Discover")
                 }
                 .tag(AppFeature.Tab.listen)
             HistoryView(store: store.scope(state: \.history, action: \.history))
@@ -187,6 +207,12 @@ struct AppView: View {
         }
         .onAppear {
             store.send(.onAppear)
+        }
+        .sheet(isPresented: $store.showingWelcome.sending(\.setShowingWelcome)) {
+            WelcomeView {
+                store.send(.setShowingWelcome(false))
+            }
+            .interactiveDismissDisabled()
         }
 #endif
     }

@@ -23,6 +23,7 @@ struct MediaPlayerFeature {
         case resume
         case play([Song])
         case enqueue(Song)
+        case removeFromQueue([MusicItemID])
         case seek(TimeInterval)
     }
 
@@ -76,6 +77,15 @@ struct MediaPlayerFeature {
                         print("Failed to enqueue the next song: \(error)")
                     }
                 }
+            case .removeFromQueue(let ids):
+                // Drop upcoming entries for songs that were just hidden,
+                // leaving whatever is currently playing untouched.
+                let current = player.queue.currentEntry
+                player.queue.entries.removeAll { entry in
+                    guard entry != current, let id = entry.item?.id else { return false }
+                    return ids.contains(id)
+                }
+                return .none
             case .seek(let time):
                 player.playbackTime = time
                 return .none
