@@ -1,5 +1,5 @@
 {
-  "originHash" : "7aae090de3fee06fc0fe6d2b750c082f36c7de5d3e16f5827766f63184f2a48b",
+  "originHash" : "3a09f04fa00fe192e5386cd80c117ba5cd8a5b85862fdd84e392d3118d78f76a",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -8,6 +8,14 @@
       "state" : {
         "revision" : "9dc9cbe4bc45c65164fa653a563d8d8db61b09bb",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "smallcharactermodel",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/joshgrant/SmallCharacterModel.git",
+      "state" : {
+        "revision" : "b917c466afb58eb2ba6e68e63abd58b9a86eb1e1"
       }
     },
     {
@@ -42,7 +50,6 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-composable-architecture.git",
       "state" : {
-        "branch" : "main",
         "revision" : "8631b5fbcc5c4ae3866474d431d64da3677df216"
       }
     },
