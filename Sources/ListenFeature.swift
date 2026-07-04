@@ -498,6 +498,7 @@ struct ListenView: View {
                 ToolbarItem {
                     if let media = store.currentMediaInformation,
                        let url = media.storeURL {
+#if os(iOS)
                         Button {
                             Task {
                                 await shareTrack(media: media, url: url)
@@ -505,6 +506,11 @@ struct ListenView: View {
                         } label: {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
+#else
+                        ShareLink(item: url, message: Text(shareText(for: media))) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+#endif
                     } else {
                         Button {
                             // Disabled state
@@ -569,6 +575,7 @@ struct ListenView: View {
         return components.joined(separator: " ")
     }
 
+#if os(iOS)
     @MainActor
     private func shareTrack(media: Media, url: URL) async {
         var itemsToShare: [Any] = []
@@ -623,6 +630,7 @@ struct ListenView: View {
 
         rootViewController.present(activityViewController, animated: true)
     }
+#endif
 
     @ViewBuilder
     private func artworkView(media: Media) -> some View {
