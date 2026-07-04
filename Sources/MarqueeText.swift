@@ -20,19 +20,28 @@ struct MarqueeText: View {
     @State private var containerWidth: CGFloat = 0
 
     var body: some View {
-        // The hidden copy gives the view its intrinsic height and reports
-        // the two widths that decide whether scrolling is needed.
+        // The truncating placeholder gives the view its height and can
+        // never exceed the container. The text's full width is measured
+        // in a background, where an overflowing `fixedSize` copy doesn't
+        // count toward layout — otherwise a long string would silently
+        // widen every ancestor beyond the screen.
         Text(text)
             .font(font)
             .lineLimit(1)
-            .fixedSize()
-            .hidden()
-            .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) {
-                textWidth = $0
-            }
+            .opacity(0)
             .frame(maxWidth: .infinity)
             .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) {
                 containerWidth = $0
+            }
+            .background {
+                Text(text)
+                    .font(font)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .hidden()
+                    .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) {
+                        textWidth = $0
+                    }
             }
             .overlay {
                 if textWidth > containerWidth {

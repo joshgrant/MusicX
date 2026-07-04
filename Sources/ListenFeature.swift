@@ -626,9 +626,7 @@ struct ListenView: View {
     private var songInfoView: some View {
         VStack(spacing: 4) {
             if let songName = store.currentMediaInformation?.songName {
-                Text(songName)
-                    .font(.title.bold())
-                    .multilineTextAlignment(.center)
+                MarqueeText(text: songName, font: .title.bold())
             } else {
                 Text("Loading song")
                     .font(.title.bold())
